@@ -1,0 +1,22 @@
+# Ignorar a pasta backup
+backup/
+
+# Ignorar a pasta database
+database/
+
+# Ignorar o arquivos .py
+test_tensorflow.py
+app2.py
+app3.py
+app4.py
+app5.py
+validation.py
+despesas.py
+despesas_ug2.py
+
+# Ignorar a pasta venv (ambiente virtual Python)
+venv/
+
+# Ignorar arquivos de cache Python
+__pycache__/
+*.py[cod]
