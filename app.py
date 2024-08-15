@@ -3,7 +3,9 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import streamlit as st
 import hashlib
-import despesas_ug  # Importa o código do dashboard de despesas
+import despesas_ug
+import diarias
+from sidebar import load_sidebar, navigate_pages
 
 # Configuração da página
 st.set_page_config(layout="wide")
@@ -68,4 +70,8 @@ if not st.session_state['authenticated']:
     login()
 else:
     st.button("Logout", on_click=lambda: st.session_state.update(authenticated=False))
-    despesas_ug.run_dashboard()  # Chama a função que roda o dashboard
+    selected_page = navigate_pages()  # Navegação de páginas
+    if selected_page == 'Despesas UG':
+        despesas_ug.run_dashboard()
+    elif selected_page == 'Diárias':
+        diarias.run_dashboard()

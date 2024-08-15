@@ -44,3 +44,10 @@ def load_sidebar(df):
     )
 
     return selected_ugs_despesas, selected_ano, selected_mes
+
+def navigate_pages():
+    page = st.sidebar.radio(
+        'Navegação',
+        ('Despesas UG', 'Diárias')
+    )
+    return page
