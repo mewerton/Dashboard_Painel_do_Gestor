@@ -133,7 +133,7 @@ def run_dashboard():
         return future_df, avg_mae, avg_mape
 
     # Carregar o sidebar
-    selected_ugs_despesas, selected_ano, selected_mes = load_sidebar(df)
+    selected_ugs_despesas, selected_ano, selected_mes = load_sidebar(df, "despesas_ug")
 
     if df is not None:
         # Filtrar dados apenas para o Poder Executivo

@@ -5,6 +5,7 @@ import streamlit as st
 import hashlib
 import despesas_ug
 import diarias
+import contratos
 from sidebar import load_sidebar, navigate_pages
 
 # Configuração da página
@@ -75,3 +76,5 @@ else:
         despesas_ug.run_dashboard()
     elif selected_page == 'Diárias':
         diarias.run_dashboard()
+    elif selected_page == 'Contratos':
+        contratos.run_dashboard()
