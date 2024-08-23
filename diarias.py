@@ -3,44 +3,14 @@ import pandas as pd
 import plotly.express as px
 import locale
 from sidebar import load_sidebar
+from data_loader import load_data
 
 # Configurar o locale para português do Brasil
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 def run_dashboard():
-    @st.cache_data
-    def load_data(file_paths):
-        dfs = []
-        total_files = len(file_paths)
-        with st.empty():
-            progress_bar = st.progress(0)
-            for i, file_path in enumerate(file_paths):
-                try:
-                    df = pd.read_excel(file_path, sheet_name=0)
-                    dfs.append(df)
-                except FileNotFoundError:
-                    st.error(f"O arquivo {file_path} não foi encontrado.")
-                except Exception as e:
-                    st.error(f"Ocorreu um erro ao carregar o arquivo {file_path}: {e}")
-            
-                progress = (i + 1) / total_files
-                progress_bar.progress(progress)
-    
-        if len(dfs) == 0:
-            return None
-        else:
-            return pd.concat(dfs, ignore_index=True)
-
-    file_paths = [
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2018.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2019.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2020.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2021.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2022.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2023.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2024.xlsx"
-    ]
-    df = load_data(file_paths)
+    # Carregar dados usando o módulo centralizado
+    df = load_data()
 
     if df is None:
         st.error("Nenhum dado foi carregado. Por favor, verifique os arquivos de entrada.")
