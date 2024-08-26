@@ -161,10 +161,20 @@ def run_dashboard():
         st.plotly_chart(fig_ano, use_container_width=True)
 
     with col6:
-        # Gráfico de Despesas por Função
+    # Gráfico de Despesas por Função
         df_funcao = df_filtered.groupby('DESCRICAO_FUNCAO')['VALOR_PAGO'].sum().reset_index()
-        fig_funcao = px.pie(df_funcao, values='VALOR_PAGO', names='DESCRICAO_FUNCAO', title='Proporção das Despesas por Função', labels={'VALOR_PAGO': 'Valor Pago', 'DESCRICAO_FUNCAO': 'Função'})
+        fig_funcao = px.pie(
+            df_funcao, 
+            values='VALOR_PAGO', 
+            names='DESCRICAO_FUNCAO', 
+            title='Proporção das Despesas por Função', 
+            labels={'VALOR_PAGO': 'Valor Pago', 'DESCRICAO_FUNCAO': 'Função'},
+            hole=0.4,  # Adiciona o parâmetro hole para criar um gráfico de rosca
+            color_discrete_sequence=['#2E9D9F','#FCDC20', '#E55115', '#095AA2', '#193040']  # Define as cores personalizadas
+        )
         st.plotly_chart(fig_funcao, use_container_width=True)
+
+
     
     # Função para criar gráficos de barras horizontais
     def plot_bar_chart(df, group_col, title, x_label, y_label):
