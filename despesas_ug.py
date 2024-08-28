@@ -212,7 +212,7 @@ def run_dashboard():
 
     # Gráfico de Barras Empilhadas: Despesas por Natureza da Despesa
     # Agrupar as despesas por natureza
-    df_natureza = df_filtered.groupby(['DESCRICAO_NATUREZA', 'DESCRICAO_NATUREZA1', 'DESCRICAO_NATUREZA2', 'DESCRICAO_NATUREZA3', 'DESCRICAO_NATUREZA4', 'DESCRICAO_NATUREZA5', 'DESCRICAO_NATUREZA6'])['VALOR_PAGO'].sum().reset_index()
+    df_natureza = df_filtered.groupby(['DESCRICAO_NATUREZA1', 'DESCRICAO_NATUREZA2', 'DESCRICAO_NATUREZA3', 'DESCRICAO_NATUREZA4', 'DESCRICAO_NATUREZA5', 'DESCRICAO_NATUREZA6'])['VALOR_PAGO'].sum().reset_index()
 
     # Formatar os valores como moeda
     df_natureza['VALOR_PAGO_FORMATADO'] = df_natureza['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
@@ -224,8 +224,8 @@ def run_dashboard():
         'Natureza 3': 'DESCRICAO_NATUREZA3',
         'Natureza 4': 'DESCRICAO_NATUREZA4',
         'Natureza 5': 'DESCRICAO_NATUREZA5',
-        'Natureza 6': 'DESCRICAO_NATUREZA6',
-        'Natureza': 'DESCRICAO_NATUREZA'
+        'Natureza 6': 'DESCRICAO_NATUREZA6'
+        #'Natureza': 'DESCRICAO_NATUREZA'
     }
 
     # Caixa de seleção para escolher a natureza
@@ -271,6 +271,25 @@ def run_dashboard():
 
     # Exibindo o gráfico no Streamlit
     st.plotly_chart(fig_bar, use_container_width=True)
+
+    # Adicionar uma tabela detalhada com informações de despesas por natureza
+    st.subheader('Despesas - Detalhado')
+    df_detalhado = df_filtered[['DESCRICAO_NATUREZA', 'NOME_FAVORECIDO', 'TIPO_LICITACAO', 'UG_EMITENTE', 'NOTA_EMPENHO', 'COD_PROCESSO', 'NOME_CONTRATO', 'OBSERVACAO_NE', 'VALOR_PAGO']]
+
+    # Configurar a formatação de valores na exibição usando o st.dataframe
+    st.dataframe(
+        df_detalhado.rename(columns={
+            'DESCRICAO_NATUREZA': 'Natureza',
+            'NOME_FAVORECIDO': 'Favorecido',
+            'TIPO_LICITACAO': 'Tipo Licitação',
+            'UG_EMITENTE': 'UG Emitente',
+            'NOTA_EMPENHO': 'Nota de Empenho',
+            'COD_PROCESSO': 'Código do Processo',
+            'NOME_CONTRATO': 'Nome do Contrato',
+            'OBSERVACAO_NE': 'Observação',
+            'VALOR_PAGO': 'Valor Pago'
+        }).style.format({'Valor Pago': 'R$ {:,.2f}'})
+    )
 
     # Realizar a análise preditiva por mês e obter o MAE e o MAPE
     df_meses_ano = df_for_prediction.groupby(['MES', 'ANO'])['VALOR_PAGO'].sum().reset_index()
