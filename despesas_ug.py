@@ -155,9 +155,24 @@ def run_dashboard():
         df_ano = df_filtered.groupby('ANO')['VALOR_PAGO'].sum().reset_index()
         df_ano['VALOR_PAGO_ABREVIADO'] = df_ano['VALOR_PAGO'].apply(format_currency)
 
-        # Criar o gráfico de barras com valores abreviados
-        fig_ano = px.bar(df_ano, x='ANO', y='VALOR_PAGO', title='Despesas por Ano', labels={'VALOR_PAGO': 'Valor Pago'})
-        fig_ano.update_traces(text=df_ano['VALOR_PAGO_ABREVIADO'], textposition='inside', hovertemplate='%{x}<br>%{text}')
+    # Criar o gráfico de barras com valores abreviados
+        fig_ano = px.bar(
+            df_ano, 
+            x='ANO', 
+            y='VALOR_PAGO', 
+            title='Despesas por Ano', 
+            labels={'VALOR_PAGO': 'Valor Pago'}, 
+            color_discrete_sequence=['#41b8d5']
+        )
+
+    # Atualizar traços para definir a cor do texto dentro das barras
+        fig_ano.update_traces(
+            text=df_ano['VALOR_PAGO_ABREVIADO'], 
+            textposition='inside', 
+            textfont_color='white',  # Define a cor do texto dentro das barras como branco
+            hovertemplate='%{x}<br>%{text}'
+        )
+
         st.plotly_chart(fig_ano, use_container_width=True)
 
     with col6:
@@ -170,20 +185,28 @@ def run_dashboard():
             title='Proporção das Despesas por Função', 
             labels={'VALOR_PAGO': 'Valor Pago', 'DESCRICAO_FUNCAO': 'Função'},
             hole=0.4,  # Adiciona o parâmetro hole para criar um gráfico de rosca
-            color_discrete_sequence=['#2E9D9F','#FCDC20', '#E55115', '#095AA2', '#193040']  # Define as cores personalizadas
+            color_discrete_sequence=['#2d8bba','#2f5f98', '#41b8d5', '#31356e', '#042b4d']  # Define as cores personalizadas
         )
         st.plotly_chart(fig_funcao, use_container_width=True)
 
-
-    
     # Função para criar gráficos de barras horizontais
-    def plot_bar_chart(df, group_col, title, x_label, y_label):
+    def plot_bar_chart(df, group_col, title, x_label, y_label, color='#E55115'):
         df_grouped = df.groupby(group_col)['VALOR_PAGO'].sum().reset_index()
         df_grouped['VALOR_PAGO_FORMATADO'] = df_grouped['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
-        fig = px.bar(df_grouped, x='VALOR_PAGO', y=group_col, orientation='h', title=title, labels={'VALOR_PAGO': x_label, group_col: y_label})
+    
+    # Criar o gráfico de barras horizontais com a cor especificada
+        fig = px.bar(
+            df_grouped, 
+            x='VALOR_PAGO', 
+            y=group_col, 
+            orientation='h', 
+            title=title, 
+            labels={'VALOR_PAGO': x_label, group_col: y_label},
+            color_discrete_sequence=[color]  # Define a cor das barras
+        )
         fig.update_traces(text=df_grouped['VALOR_PAGO_FORMATADO'], textposition='auto', insidetextanchor='end', hoverinfo='x+text')
     
-        # Calcular a altura do gráfico com base no número de categorias
+    # Calcular a altura do gráfico com base no número de categorias
         num_categories = df_grouped.shape[0]
         fig_height = max(400, num_categories * 30)
     
@@ -200,7 +223,17 @@ def run_dashboard():
     df_favorecido = df_filtered.groupby('NOME_FAVORECIDO')['VALOR_PAGO'].sum().reset_index()
     df_favorecido = df_favorecido.sort_values(by='VALOR_PAGO', ascending=False).head(10)  # Exibir os 10 maiores favorecidos
     df_favorecido['VALOR_PAGO_FORMATADO'] = df_favorecido['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
-    fig_favorecido = px.bar(df_favorecido, x='VALOR_PAGO', y='NOME_FAVORECIDO', orientation='h', title='Despesas por Favorecido', labels={'VALOR_PAGO': 'Valor Pago', 'NOME_FAVORECIDO': 'Favorecido'})
+
+    # Criar o gráfico de barras horizontais com a cor especificada
+    fig_favorecido = px.bar(
+        df_favorecido, 
+        x='VALOR_PAGO', 
+        y='NOME_FAVORECIDO', 
+        orientation='h', 
+        title='Despesas por Favorecido', 
+        labels={'VALOR_PAGO': 'Valor Pago', 'NOME_FAVORECIDO': 'Favorecido'},
+        color_discrete_sequence=['#E55115']  # Define a cor das barras
+    )
     fig_favorecido.update_traces(text=df_favorecido['VALOR_PAGO_FORMATADO'], textposition='auto', insidetextanchor='end', hoverinfo='x+text')
 
     # Calcular a altura do gráfico com base no número de categorias
@@ -209,6 +242,7 @@ def run_dashboard():
 
     fig_favorecido.update_layout(yaxis={'categoryorder':'total ascending'}, height=fig_height_favorecido)
     st.plotly_chart(fig_favorecido, use_container_width=True)
+
 
     # Gráfico de Barras Empilhadas: Despesas por Natureza da Despesa
     # Agrupar as despesas por natureza
@@ -258,7 +292,8 @@ def run_dashboard():
         y='VALOR_PAGO',
         text='VALOR_PAGO_FORMATADO',
         title=f'Despesas por {selecao_natureza}',
-        labels={coluna_selecionada: selecao_natureza, 'VALOR_PAGO': 'Valor Pago'}
+        labels={coluna_selecionada: selecao_natureza, 'VALOR_PAGO': 'Valor Pago'},
+        color_discrete_sequence=['#095aa2']  # Define a cor das barras
     )
 
     # Atualizando o layout do gráfico
