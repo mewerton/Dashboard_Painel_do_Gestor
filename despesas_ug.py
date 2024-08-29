@@ -284,7 +284,7 @@ def run_dashboard():
     )
 
     # Exibir o valor total das linhas filtradas
-    st.markdown(f"**Valor total das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
+    st.markdown(f"**Valor total pago das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
 
 
 if __name__ == "__main__":
