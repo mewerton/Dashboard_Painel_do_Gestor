@@ -97,8 +97,8 @@ def run_dashboard():
         df_contratante = df.groupby('NOME_CONTRATANTE').size().reset_index(name='quantidade')
         fig.add_trace(go.Bar(x=df_contratante['NOME_CONTRATANTE'], y=df_contratante['quantidade'], name='Contratante'))
 
-        fig.update_layout(barmode='stack', title='Distribuição de Contratos', xaxis_title='Categoria', yaxis_title='Contagem')
-        st.plotly_chart(fig, use_container_width=True)
+
+
 
         # 2. Gráfico de Pizza
         # fig_pizza_situacao = px.pie(df_situacao, values='quantidade', names='DSC_SITUACAO', title='Proporção de Contratos por Situação')
@@ -114,58 +114,64 @@ def run_dashboard():
         # st.plotly_chart(fig_pizza_contratante)
 
         # 2. Gráfico de Rosca (Donut)
-        fig_donut_situacao = px.pie(df_situacao, values='quantidade', names='DSC_SITUACAO', title='Proporção de Contratos por Situação', hole=0.4)
-        st.plotly_chart(fig_donut_situacao)
 
-        fig_donut_licitacao = px.pie(df_licitacao, values='quantidade', names='NOM_TIPO_LICITACAO', title='Proporção de Contratos por Tipo de Licitação', hole=0.4)
-        st.plotly_chart(fig_donut_licitacao)
+        col3, col4 = st.columns(2)
 
-        fig_donut_natureza = px.pie(df_natureza, values='quantidade', names='NATUREZA_CONTRATO', title='Proporção de Contratos por Natureza', hole=0.4)
-        st.plotly_chart(fig_donut_natureza)
+        with col3:
 
-        fig_donut_contratante = px.pie(df_contratante, values='quantidade', names='NOME_CONTRATANTE', title='Proporção de Contratos por Contratante', hole=0.4)
-        st.plotly_chart(fig_donut_contratante)
+            fig_donut_situacao = px.pie(df_situacao, values='quantidade', names='DSC_SITUACAO', title='Proporção de Contratos por Situação', hole=0.4)
+            st.plotly_chart(fig_donut_situacao)
+        
+        with col4:
+            fig_donut_licitacao = px.pie(df_licitacao, values='quantidade', names='NOM_TIPO_LICITACAO', title='Proporção de Contratos por Tipo de Licitação', hole=0.4)
+            st.plotly_chart(fig_donut_licitacao)
 
-        # 3. Gráfico de Linha
-        df_tempo_inicio = df.groupby(df['DATA_INICIO_VIGENCIA'].dt.to_period('M')).size().reset_index(name='quantidade')
-        df_tempo_fim = df.groupby(df['DATA_FIM_VIGENCIA'].dt.to_period('M')).size().reset_index(name='quantidade')
-        df_publicacao = df.groupby(df['DATA_PUBLICACAO'].dt.to_period('M')).size().reset_index(name='quantidade')
+        # fig_donut_natureza = px.pie(df_natureza, values='quantidade', names='NATUREZA_CONTRATO', title='Proporção de Contratos por Natureza', hole=0.4)
+        # st.plotly_chart(fig_donut_natureza)
 
-        df_tempo_inicio['DATA_INICIO_VIGENCIA'] = df_tempo_inicio['DATA_INICIO_VIGENCIA'].astype(str)
-        df_tempo_fim['DATA_FIM_VIGENCIA'] = df_tempo_fim['DATA_FIM_VIGENCIA'].astype(str)
-        df_publicacao['DATA_PUBLICACAO'] = df_publicacao['DATA_PUBLICACAO'].astype(str)
+        # fig_donut_contratante = px.pie(df_contratante, values='quantidade', names='NOME_CONTRATANTE', title='Proporção de Contratos por Contratante', hole=0.4)
+        # st.plotly_chart(fig_donut_contratante)
 
-        fig_linha = go.Figure()
-        fig_linha.add_trace(go.Scatter(x=df_tempo_inicio['DATA_INICIO_VIGENCIA'], y=df_tempo_inicio['quantidade'], mode='lines', name='Início de Vigência'))
-        fig_linha.add_trace(go.Scatter(x=df_tempo_fim['DATA_FIM_VIGENCIA'], y=df_tempo_fim['quantidade'], mode='lines', name='Fim de Vigência'))
-        fig_linha.add_trace(go.Scatter(x=df_publicacao['DATA_PUBLICACAO'], y=df_publicacao['quantidade'], mode='lines', name='Publicação'))
+        # # 3. Gráfico de Linha
+        # df_tempo_inicio = df.groupby(df['DATA_INICIO_VIGENCIA'].dt.to_period('M')).size().reset_index(name='quantidade')
+        # df_tempo_fim = df.groupby(df['DATA_FIM_VIGENCIA'].dt.to_period('M')).size().reset_index(name='quantidade')
+        # df_publicacao = df.groupby(df['DATA_PUBLICACAO'].dt.to_period('M')).size().reset_index(name='quantidade')
 
-        fig_linha.update_layout(title='Número de Contratos ao Longo do Tempo', xaxis_title='Data', yaxis_title='Contagem')
-        st.plotly_chart(fig_linha)
+        # df_tempo_inicio['DATA_INICIO_VIGENCIA'] = df_tempo_inicio['DATA_INICIO_VIGENCIA'].astype(str)
+        # df_tempo_fim['DATA_FIM_VIGENCIA'] = df_tempo_fim['DATA_FIM_VIGENCIA'].astype(str)
+        # df_publicacao['DATA_PUBLICACAO'] = df_publicacao['DATA_PUBLICACAO'].astype(str)
+
+        # fig_linha = go.Figure()
+        # fig_linha.add_trace(go.Scatter(x=df_tempo_inicio['DATA_INICIO_VIGENCIA'], y=df_tempo_inicio['quantidade'], mode='lines', name='Início de Vigência'))
+        # fig_linha.add_trace(go.Scatter(x=df_tempo_fim['DATA_FIM_VIGENCIA'], y=df_tempo_fim['quantidade'], mode='lines', name='Fim de Vigência'))
+        # fig_linha.add_trace(go.Scatter(x=df_publicacao['DATA_PUBLICACAO'], y=df_publicacao['quantidade'], mode='lines', name='Publicação'))
+
+        # fig_linha.update_layout(title='Número de Contratos ao Longo do Tempo', xaxis_title='Data', yaxis_title='Contagem')
+        # st.plotly_chart(fig_linha)
 
         # 4. Gráfico de Barras Horizontais de Valores de Contratos por Categoria
-        st.subheader('Valores de Contratos por Categoria')
+        #st.subheader('Valores de Contratos por Categoria')
 
         # Valores de contratos por contratante
-        df_valores_contratante = df.groupby('NOME_CONTRATANTE')['VALOR_TOTAL'].sum().reset_index()
+        # df_valores_contratante = df.groupby('NOME_CONTRATANTE')['VALOR_TOTAL'].sum().reset_index()
 
-        df_valores_contratante['VALOR_FORMATADO'] = df_valores_contratante['VALOR_TOTAL'].apply(
-            lambda x: 'R$ {:,.2f}'.format(x).replace(',', 'X').replace('.', ',').replace('X', '.'))
+        # df_valores_contratante['VALOR_FORMATADO'] = df_valores_contratante['VALOR_TOTAL'].apply(
+        #     lambda x: 'R$ {:,.2f}'.format(x).replace(',', 'X').replace('.', ',').replace('X', '.'))
 
-        fig_valores_contratante = go.Figure(go.Bar(
-            x=df_valores_contratante['VALOR_TOTAL'],
-            y=df_valores_contratante['NOME_CONTRATANTE'],
-            text=df_valores_contratante['VALOR_FORMATADO'],
-            textposition='auto',
-            orientation='h'
-        ))
-        fig_valores_contratante.update_layout(
-            title='Valores Totais de Contratos por Contratante',
-            xaxis_title='Valor Total',
-            yaxis_title='Contratante',
-            height=600
-        )
-        st.plotly_chart(fig_valores_contratante, use_container_width=True)
+        # fig_valores_contratante = go.Figure(go.Bar(
+        #     x=df_valores_contratante['VALOR_TOTAL'],
+        #     y=df_valores_contratante['NOME_CONTRATANTE'],
+        #     text=df_valores_contratante['VALOR_FORMATADO'],
+        #     textposition='auto',
+        #     orientation='h'
+        # ))
+        # fig_valores_contratante.update_layout(
+        #     title='Valores Totais de Contratos por Contratante',
+        #     xaxis_title='Valor Total',
+        #     yaxis_title='Contratante',
+        #     height=600
+        # )
+        # st.plotly_chart(fig_valores_contratante, use_container_width=True)
 
         # Valores de contratos por tipo de licitação
         df_valores_licitacao = df.groupby('NOM_TIPO_LICITACAO')['VALOR_TOTAL'].sum().reset_index()
@@ -188,26 +194,31 @@ def run_dashboard():
         )
         st.plotly_chart(fig_valores_licitacao, use_container_width=True)
 
+        # Distribuição de contratos
+        fig.update_traces(texttemplate='%{y}', textposition='auto')
+        fig.update_layout(barmode='stack', title='Distribuição de Contratos', xaxis_title='Categoria', yaxis_title='Contagem')
+        st.plotly_chart(fig, use_container_width=True)
+
         # Valores de contratos por natureza
-        df_valores_natureza = df.groupby('NATUREZA_CONTRATO')['VALOR_TOTAL'].sum().reset_index()
+        # df_valores_natureza = df.groupby('NATUREZA_CONTRATO')['VALOR_TOTAL'].sum().reset_index()
 
-        df_valores_natureza['VALOR_FORMATADO'] = df_valores_natureza['VALOR_TOTAL'].apply(
-            lambda x: 'R$ {:,.2f}'.format(x).replace(',', 'X').replace('.', ',').replace('X', '.'))
+        # df_valores_natureza['VALOR_FORMATADO'] = df_valores_natureza['VALOR_TOTAL'].apply(
+        #     lambda x: 'R$ {:,.2f}'.format(x).replace(',', 'X').replace('.', ',').replace('X', '.'))
 
-        fig_valores_natureza = go.Figure(go.Bar(
-            x=df_valores_natureza['VALOR_TOTAL'],
-            y=df_valores_natureza['NATUREZA_CONTRATO'],
-            text=df_valores_natureza['VALOR_FORMATADO'],
-            textposition='auto',
-            orientation='h'
-        ))
-        fig_valores_natureza.update_layout(
-            title='Valores Totais de Contratos por Natureza',
-            xaxis_title='Valor Total',
-            yaxis_title='Natureza',
-            height=600
-        )
-        st.plotly_chart(fig_valores_natureza, use_container_width=True)
+        # fig_valores_natureza = go.Figure(go.Bar(
+        #     x=df_valores_natureza['VALOR_TOTAL'],
+        #     y=df_valores_natureza['NATUREZA_CONTRATO'],
+        #     text=df_valores_natureza['VALOR_FORMATADO'],
+        #     textposition='auto',
+        #     orientation='h'
+        # ))
+        # fig_valores_natureza.update_layout(
+        #     title='Valores Totais de Contratos por Natureza',
+        #     xaxis_title='Valor Total',
+        #     yaxis_title='Natureza',
+        #     height=600
+        # )
+        # st.plotly_chart(fig_valores_natureza, use_container_width=True)
 
         # Formatação desejada
         df['CODIGO_CONTRATO'] = df['CODIGO_CONTRATO'].astype(int).astype(str)

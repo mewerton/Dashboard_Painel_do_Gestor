@@ -51,7 +51,13 @@ def run_dashboard():
 
     with col4:
         df_categoria = df_diarias.groupby('DESCRICAO_NATUREZA')[['VALOR_EMPENHADO', 'VALOR_PAGO']].sum().reset_index()
-        fig_pizza = px.pie(df_categoria, values='VALOR_PAGO', names='DESCRICAO_NATUREZA', title='Proporção das Despesas com Diárias')
+        fig_pizza = px.pie(
+            df_categoria,
+            values='VALOR_PAGO',
+            names='DESCRICAO_NATUREZA',
+            title='Proporção das Despesas com Diárias',
+            hole=0.4  # Adiciona um buraco no meio para criar um gráfico de rosca
+        )
         st.plotly_chart(fig_pizza)
 
     col7, col8 = st.columns(2)
