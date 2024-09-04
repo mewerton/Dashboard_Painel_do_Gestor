@@ -52,7 +52,8 @@ def run_dashboard():
             title='Evolução Mensal das Despesas',
             markers=True,  # Adiciona pontos nos dados
             line_shape='spline',  # Linhas suaves
-            labels={'MES': 'Mês', 'value': 'Valor'}
+            labels={'MES': 'Mês', 'value': 'Valor'},
+            color_discrete_sequence=['#31356e', '#41b8d5']  # Definindo as cores das linhas
         )
         st.plotly_chart(fig_mensal)
 
@@ -63,9 +64,11 @@ def run_dashboard():
             values='VALOR_PAGO',
             names='DESCRICAO_NATUREZA',
             title='Proporção das Despesas com Diárias',
-            hole=0.4  # Adiciona um buraco no meio para criar um gráfico de rosca
+            hole=0.4,  # Adiciona um buraco no meio para criar um gráfico de rosca
+            color_discrete_sequence=['#095aa2', '#042b4d']  # Define as cores desejadas
         )
         st.plotly_chart(fig_pizza)
+
 
     col7, col8 = st.columns(2)
 
@@ -81,12 +84,38 @@ def run_dashboard():
         df_categoria['VALOR_PAGO'] = df_categoria['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
         st.dataframe(df_categoria)
 
+    # Adicionar a tabela de Favorecidos das Diárias com filtro por palavra-chave e cálculo do valor total filtrado
     st.subheader('Favorecidos das Diárias')
-    df_diarias = df_diarias[df_diarias['VALOR_PAGO'] > 0]
+
+    # Campo de entrada para a palavra-chave de pesquisa
+    keyword = st.text_input('Digite uma palavra-chave para filtrar a tabela:')
+
+    # Agrupar os dados de favorecidos
     df_favorecidos = df_diarias.groupby(['NOME_FAVORECIDO', 'DESCRICAO_NATUREZA', 'COD_PROCESSO', 'NOTA_EMPENHO', 'OBSERVACAO_NE']).agg({'VALOR_PAGO': 'sum', 'MES': 'count'}).reset_index()
-    df_favorecidos['VALOR_PAGO'] = df_favorecidos['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
-    df_favorecidos.rename(columns={'MES': 'QUANTIDADE'}, inplace=True)
-    st.dataframe(df_favorecidos[['NOME_FAVORECIDO', 'DESCRICAO_NATUREZA', 'COD_PROCESSO', 'QUANTIDADE', 'VALOR_PAGO', 'NOTA_EMPENHO', 'OBSERVACAO_NE']])
+    
+    # Renomear colunas e reordenar
+    df_favorecidos = df_favorecidos.rename(columns={
+        'NOME_FAVORECIDO': 'Favorecido',
+        'DESCRICAO_NATUREZA': 'Natureza',
+        'VALOR_PAGO': 'Valor Pago',
+        'COD_PROCESSO': 'Código do Processo',
+        'NOTA_EMPENHO': 'Nota de Empenho',
+        'OBSERVACAO_NE': 'Observação',
+        'MES': 'Quantidade'
+    })[['Favorecido', 'Natureza', 'Valor Pago', 'Código do Processo', 'Nota de Empenho', 'Observação', 'Quantidade']]
+
+    # Aplicar filtro baseado na palavra-chave
+    if keyword:
+        df_favorecidos = df_favorecidos[df_favorecidos.apply(lambda row: row.astype(str).str.contains(keyword, case=False).any(), axis=1)]
+
+    # Calcular o valor total das linhas filtradas
+    valor_total_filtrado = df_favorecidos['Valor Pago'].sum()
+
+    # Exibir a tabela
+    st.dataframe(df_favorecidos.style.format({'Valor Pago': 'R$ {:,.2f}'}))
+
+    # Exibir o valor total das linhas filtradas
+    st.markdown(f"**Valor total pago das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
 
 if __name__ == "__main__":
     run_dashboard()
