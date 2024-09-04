@@ -9,7 +9,8 @@ def load_data():
         "./database/despesa_empenhado_liquidado_pago_detalhado_2020.csv",
         "./database/despesa_empenhado_liquidado_pago_detalhado_2021.csv",
         "./database/despesa_empenhado_liquidado_pago_detalhado_2022.csv",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2023.csv"
+        "./database/despesa_empenhado_liquidado_pago_detalhado_2023.csv",
+        "./database/despesa_empenhado_liquidado_pago_detalhado_2024.csv"
     ]
     
     dfs = []
@@ -21,13 +22,14 @@ def load_data():
 
     for i, file_path in enumerate(file_paths):
         try:
-            # Ler o arquivo CSV com delimitador "|"
             df = pd.read_csv(file_path, delimiter='|')
             dfs.append(df)
         except FileNotFoundError:
             st.error(f"O arquivo {file_path} não foi encontrado.")
+        except pd.errors.ParserError:
+            st.error(f"Erro ao analisar o arquivo {file_path}.")
         except Exception as e:
-            st.error(f"Ocorreu um erro ao carregar o arquivo {file_path}: {e}")
+            st.error(f"Ocorreu um erro não esperado ao carregar o arquivo {file_path}: {str(e)}")
         
         # Atualizar a barra de progresso
         progress = int((i + 1) / total_files * 100)
