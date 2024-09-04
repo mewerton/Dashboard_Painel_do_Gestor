@@ -12,7 +12,21 @@ def run_dashboard():
     @st.cache_data
     def load_data(file_path):
         try:
+            # Criar a barra de progresso e o texto de carregamento
+            texto = st.empty()
+            bar = st.progress(0)
+
+            # Simular o progresso de carregamento
+            for i in range(100):
+                bar.progress(i + 1)
+                texto.text(f"Carregando... {i + 1}%")
+
+            # Carregar o arquivo CSV com delimitador '|'
             df = pd.read_excel(file_path, sheet_name=0)
+
+            # Limpar o texto após o carregamento
+            texto.empty()
+
             return df
         except FileNotFoundError:
             st.error(f"O arquivo {file_path} não foi encontrado.")
@@ -70,7 +84,7 @@ def run_dashboard():
         valor_total_formatado = locale.currency(valor_total_contratos, grouping=True)
 
         # Adicionar métricas ao painel
-        st.subheader('Métricas da UG Filtrada')
+        st.subheader('Métricas da Contratos')
         col1, col2 = st.columns(2)
 
         col1.metric("Quantidade de Contratos", quantidade_contratos)
