@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 import plotly.express as px
 import locale
 from sidebar import load_sidebar
@@ -46,7 +45,15 @@ def run_dashboard():
 
     with col3:
         df_mensal = df_diarias.groupby('MES')[['VALOR_EMPENHADO', 'VALOR_PAGO']].sum().reset_index()
-        fig_mensal = px.line(df_mensal, x='MES', y=['VALOR_EMPENHADO', 'VALOR_PAGO'], title='Evolução Mensal das Despesas')
+        fig_mensal = px.line(
+            df_mensal, 
+            x='MES', 
+            y=['VALOR_EMPENHADO', 'VALOR_PAGO'], 
+            title='Evolução Mensal das Despesas',
+            markers=True,  # Adiciona pontos nos dados
+            line_shape='spline',  # Linhas suaves
+            labels={'MES': 'Mês', 'value': 'Valor'}
+        )
         st.plotly_chart(fig_mensal)
 
     with col4:
