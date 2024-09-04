@@ -4,13 +4,13 @@ import streamlit as st
 @st.cache_resource
 def load_data():
     file_paths = [
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2018.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2019.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2020.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2021.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2022.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2023.xlsx",
-        "./database/despesa_empenhado_liquidado_pago_detalhado_2024.xlsx"
+        "./database/despesa_empenhado_liquidado_pago_detalhado_2018.csv",
+        "./database/despesa_empenhado_liquidado_pago_detalhado_2019.csv",
+        "./database/despesa_empenhado_liquidado_pago_detalhado_2020.csv",
+        "./database/despesa_empenhado_liquidado_pago_detalhado_2021.csv",
+        "./database/despesa_empenhado_liquidado_pago_detalhado_2022.csv",
+        "./database/despesa_empenhado_liquidado_pago_detalhado_2023.csv"
+        #"./database/amostra_de_despesas_de_2024.csv"
     ]
     
     dfs = []
@@ -22,7 +22,8 @@ def load_data():
 
     for i, file_path in enumerate(file_paths):
         try:
-            df = pd.read_excel(file_path, sheet_name=0)
+            # Ler o arquivo CSV com delimitador "|"
+            df = pd.read_csv(file_path, delimiter='|')
             dfs.append(df)
         except FileNotFoundError:
             st.error(f"O arquivo {file_path} não foi encontrado.")
@@ -41,4 +42,3 @@ def load_data():
         return None
     else:
         return pd.concat(dfs, ignore_index=True)
-
