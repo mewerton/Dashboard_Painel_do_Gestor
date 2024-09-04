@@ -58,7 +58,7 @@ if not st.session_state['authenticated']:
 else:
     st.button("Logout", on_click=lambda: st.session_state.update(authenticated=False, data=None))
     selected_page = navigate_pages()
-    if selected_page == 'Despesas UG':
+    if selected_page == 'Despesas Detalhado':
         despesas_ug.run_dashboard()
     elif selected_page == 'Diárias':
         diarias.run_dashboard()

@@ -241,15 +241,24 @@ def run_dashboard():
         df['DATA_FIM_VIGENCIA'] = pd.to_datetime(df['DATA_FIM_VIGENCIA']).dt.strftime('%d/%m/%Y')
         df['VALOR_TOTAL'] = df['VALOR_TOTAL'].apply(lambda x: locale.currency(x, grouping=True))
 
-        # Mostrar todos os contratos da coluna "CODIGO_CONTRATO" da UG filtrada
+# Adicionar o título
         st.subheader('Contratos da Unidade Gestora')
+
+# Campo de entrada para a palavra-chave de pesquisa
+        keyword = st.text_input('Digite uma palavra-chave para filtrar os contratos:')
+
+# Aplicar o filtro se uma palavra-chave for inserida
+        if keyword:
+            df = df[df.apply(lambda row: row.astype(str).str.contains(keyword, case=False).any(), axis=1)]
+
+# Mostrar todos os contratos da coluna "CODIGO_CONTRATO" da UG filtrada
         st.write(df[['CODIGO_CONTRATO', 'UG', 'NOME_CONTRATANTE', 'NOME_CONTRATADA', 'NOME_CONTRATO', 'DATA_INICIO_VIGENCIA', 'DATA_FIM_VIGENCIA', 'VALOR_TOTAL', 'DSC_SITUACAO']])
 
-        # Verificar se a planilha 'ADITIVOS_REAJUSTES' está presente no arquivo Excel
+# Verificar se a planilha 'ADITIVOS_REAJUSTES' está presente no arquivo Excel
         if 'ADITIVOS_REAJUSTES' in pd.ExcelFile(file_path).sheet_names:
             df_aditivos_reajustes = pd.read_excel(file_path, sheet_name='ADITIVOS_REAJUSTES')
 
-            # Formatar o COD_CONTRATO da aba ADITIVOS_REAJUSTES
+    # Formatar o COD_CONTRATO da aba ADITIVOS_REAJUSTES
             df_aditivos_reajustes['COD_CONTRATO'] = df_aditivos_reajustes['COD_CONTRATO'].astype(int).astype(str)
             df_aditivos_reajustes['DATA_VIGENCIA_INICIAL'] = pd.to_datetime(df_aditivos_reajustes['DATA_VIGENCIA_INICIAL']).dt.strftime('%d/%m/%Y')
             df_aditivos_reajustes['DATA_VIGENCIA_FINAL'] = pd.to_datetime(df_aditivos_reajustes['DATA_VIGENCIA_FINAL']).dt.strftime('%d/%m/%Y')
@@ -258,23 +267,23 @@ def run_dashboard():
             df_aditivos_reajustes['DSC_OBJETO'] = df_aditivos_reajustes['DSC_OBJETO'].str.upper()
             df_aditivos_reajustes['VALOR'] = df_aditivos_reajustes['VALOR'].apply(lambda x: locale.currency(x, grouping=True))
 
-            # Filtrar ADITIVOS_REAJUSTES pelos CODIGO_CONTRATO da UG filtrada
+    # Filtrar ADITIVOS_REAJUSTES pelos CODIGO_CONTRATO da UG filtrada
             df_aditivos_reajustes_ug = df_aditivos_reajustes[df_aditivos_reajustes['COD_CONTRATO'].isin(df['CODIGO_CONTRATO'])]
 
             st.subheader('Informações de Aditivos/Reajustes')
 
-            # Exibir tabela com informações de ADITIVOS_REAJUSTES
+    # Exibir tabela com informações de ADITIVOS_REAJUSTES
             st.write(df_aditivos_reajustes_ug)
 
-            # Adicionar filtro para digitar o COD_CONTRATO
+    # Adicionar filtro para digitar o COD_CONTRATO
             selected_cod_contrato = st.text_input('Digite o código do contrato e veja todos aditivos:')
 
-            # Verificar se o contrato digitado é válido
+    # Verificar se o contrato digitado é válido
             if selected_cod_contrato.strip() != '':
-                # Filtrar os dados dos aditivos/reajustes com base no COD_CONTRATO selecionado
+        # Filtrar os dados dos aditivos/reajustes com base no COD_CONTRATO selecionado
                 df_aditivos_contrato = df_aditivos_reajustes_ug[df_aditivos_reajustes_ug['COD_CONTRATO'] == selected_cod_contrato]
 
-                # Mostrar as informações dos aditivos/reajustes do contrato selecionado
+        # Mostrar as informações dos aditivos/reajustes do contrato selecionado
                 st.write(f'Informações do contrato {selected_cod_contrato}:')
                 st.write(df_aditivos_contrato)
             else:

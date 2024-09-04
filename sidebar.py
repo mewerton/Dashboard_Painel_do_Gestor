@@ -93,6 +93,6 @@ def load_sidebar(df, dashboard_name):
 def navigate_pages():
     page = st.sidebar.radio(
         'Navegação',
-        ('Despesas UG', 'Diárias', 'Contratos')
+        ('Despesas Detalhado', 'Diárias', 'Contratos')
     )
     return page
