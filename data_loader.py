@@ -10,7 +10,6 @@ def load_data():
         "./database/despesa_empenhado_liquidado_pago_detalhado_2021.csv",
         "./database/despesa_empenhado_liquidado_pago_detalhado_2022.csv",
         "./database/despesa_empenhado_liquidado_pago_detalhado_2023.csv"
-        #"./database/amostra_de_despesas_de_2024.csv"
     ]
     
     dfs = []
