@@ -124,7 +124,7 @@ def run_dashboard():
     df_total_por_favorecido = df_total_por_favorecido[df_total_por_favorecido['VALOR_PAGO'] > 0]
 
     # Ordenar por valor total pago, do maior para o menor
-    df_total_por_favorecido = df_total_por_favorecido.sort_values(by='VALOR_PAGO', ascending=False)
+    df_total_por_favorecido = df_total_por_favorecido.sort_values(by='VALOR_PAGO', ascending=True)
 
     # Formatar os valores como moeda brasileira
     df_total_por_favorecido['VALOR_PAGO_FORMATADO'] = df_total_por_favorecido['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
