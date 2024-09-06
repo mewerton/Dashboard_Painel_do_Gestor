@@ -198,7 +198,8 @@ def run_dashboard():
             y=df_valores_licitacao['NOM_TIPO_LICITACAO'],
             text=df_valores_licitacao['VALOR_FORMATADO'],
             textposition='auto',
-            orientation='h'
+            orientation='h',
+            marker=dict(color='#095aa2')  # Define a cor das barras
         ))
         fig_valores_licitacao.update_layout(
             title='Valores Totais de Contratos por Tipo de Licitação',
