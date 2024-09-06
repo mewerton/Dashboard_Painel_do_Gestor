@@ -117,5 +117,47 @@ def run_dashboard():
     # Exibir o valor total das linhas filtradas
     st.markdown(f"**Valor total pago das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
 
+    # Agrupar por favorecido e calcular o valor total pago
+    df_total_por_favorecido = df_diarias.groupby('NOME_FAVORECIDO')['VALOR_PAGO'].sum().reset_index()
+
+    # Filtrar para exibir apenas valores maiores que 0
+    df_total_por_favorecido = df_total_por_favorecido[df_total_por_favorecido['VALOR_PAGO'] > 0]
+
+    # Ordenar por valor total pago, do maior para o menor
+    df_total_por_favorecido = df_total_por_favorecido.sort_values(by='VALOR_PAGO', ascending=False)
+
+    # Formatar os valores como moeda brasileira
+    df_total_por_favorecido['VALOR_PAGO_FORMATADO'] = df_total_por_favorecido['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+
+    # Criar o gráfico de barras horizontais
+    fig_favorecido = px.bar(
+        df_total_por_favorecido,
+        x='VALOR_PAGO', 
+        y='NOME_FAVORECIDO',
+        orientation='h',  # Barras horizontais
+        title='Total de Diárias Recebidas por Favorecido',
+        labels={'VALOR_PAGO': 'Valor Pago', 'NOME_FAVORECIDO': 'Favorecido'},
+        text='VALOR_PAGO_FORMATADO',  # Exibir o valor formatado em cada barra
+        color_discrete_sequence=['#095aa2']  # Define a cor das barras
+    )
+
+    # Ajustar o hover para mostrar apenas o nome e o valor formatado
+    fig_favorecido.update_traces(
+        hovertemplate='%{y}<br>%{text}<extra></extra>'  # Exibe nome e valor formatado, oculta "extra" info
+    )
+
+    # Ajustar layout e formatação dos valores
+    fig_favorecido.update_layout(
+        xaxis_title='Valor Total Pago (R$)',
+        yaxis_title='Favorecido',
+        height=600  # Ajuste a altura conforme necessário
+    )
+
+    # Exibir o gráfico
+    st.plotly_chart(fig_favorecido, use_container_width=True)
+
+
+
+
 if __name__ == "__main__":
     run_dashboard()
