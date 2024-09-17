@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import locale
-from sklearn.linear_model import LinearRegression
-import numpy as np
-from sklearn.metrics import mean_absolute_error
 from sidebar import load_sidebar
 from data_loader import load_data
 
@@ -240,22 +237,30 @@ def run_dashboard():
     # Campo de entrada para a palavra-chave de pesquisa
     keyword = st.text_input('Digite uma palavra-chave para filtrar a tabela:')
 
-    # Filtrar o dataframe com base na palavra-chave
+    # Inicializar uma variável para controlar a exibição da tabela
+    mostrar_tabela = False
+
+    # Se o usuário digitou algo no campo de pesquisa, mostrar a tabela com o filtro
     if keyword:
         df_detalhado = df_detalhado[df_detalhado.apply(lambda row: row.astype(str).str.contains(keyword, case=False).any(), axis=1)]
+        mostrar_tabela = True  # Sempre mostrar a tabela ao pesquisar
+
+    # Se o usuário não digitou nada, mostrar o botão para exibir a tabela completa
+    if not keyword:
+        if st.button('Exibir tudo'):
+            mostrar_tabela = True  # Mostrar a tabela ao clicar no botão
 
     # Opções de exibição de valores
     col7, col8, col9 = st.columns(3)
 
     with col7:
         exibir_positivos = st.checkbox('Exibir valores positivos', value=True)
-    
+
     with col8:
         exibir_zerados = st.checkbox('Exibir valores zerados', value=True)
-    
+
     with col9:
         exibir_negativos = st.checkbox('Exibir valores negativos', value=True)
-    
 
     # Filtrar o dataframe com base nas opções de exibição
     if not exibir_positivos:
@@ -268,23 +273,28 @@ def run_dashboard():
     # Calcular o valor total das linhas filtradas
     valor_total_filtrado = df_detalhado['VALOR_PAGO'].sum()
 
-    # Configurar a formatação de valores na exibição usando o st.dataframe
-    st.dataframe(
-        df_detalhado.rename(columns={
-            'DESCRICAO_NATUREZA': 'Natureza',
-            'NOME_FAVORECIDO': 'Favorecido',
-            'TIPO_LICITACAO': 'Tipo Licitação',
-            'UG_EMITENTE': 'UG Emitente',
-            'NOTA_EMPENHO': 'Nota de Empenho',
-            'COD_PROCESSO': 'Código do Processo',
-            'NOME_CONTRATO': 'Nome do Contrato',
-            'OBSERVACAO_NE': 'Observação',
-            'VALOR_PAGO': 'Valor Pago'
-        }).style.format({'Valor Pago': 'R$ {:,.2f}'})
-    )
+    # Exibir a tabela apenas se a variável mostrar_tabela for True
+    if mostrar_tabela:
+        # Configurar a formatação de valores na exibição usando o st.dataframe
+        st.dataframe(
+            df_detalhado.rename(columns={
+                'DESCRICAO_NATUREZA': 'Natureza',
+                'NOME_FAVORECIDO': 'Favorecido',
+                'TIPO_LICITACAO': 'Tipo Licitação',
+                'UG_EMITENTE': 'UG Emitente',
+                'NOTA_EMPENHO': 'Nota de Empenho',
+                'COD_PROCESSO': 'Código do Processo',
+                'NOME_CONTRATO': 'Nome do Contrato',
+                'OBSERVACAO_NE': 'Observação',
+                'VALOR_PAGO': 'Valor Pago'
+            }).style.format({'Valor Pago': 'R$ {:,.2f}'})
+        )
 
-    # Exibir o valor total das linhas filtradas
-    st.markdown(f"**Valor total pago das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
+        # Exibir o valor total das linhas filtradas
+        st.markdown(f"**Valor total pago das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
+
+
+
 
 
 if __name__ == "__main__":
