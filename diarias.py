@@ -1,5 +1,7 @@
 import streamlit as st
+import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import locale
 from sidebar import load_sidebar
 from data_loader import load_data
@@ -167,7 +169,184 @@ def run_dashboard():
     # Exibir o valor total das linhas filtradas
         st.markdown(f"**Valor total pago das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
 
+#===========================================================================================
+    # Contagem dos servidores que receberam diárias em 3, 4-5, e 6 ou mais meses consecutivos
+    
+    # Adicionar a tabela de Favorecidos das Diárias com filtro por palavra-chave e cálculo do valor total filtrado
+    st.subheader('Servidores recebendo Diárias Consecutivas')
 
+# Identificar o último mês e ano no dataset
+    ultimo_ano = df_diarias['ANO'].max()
+    ultimo_mes = df_diarias[df_diarias['ANO'] == ultimo_ano]['MES'].max()
+
+# Função para contar servidores consecutivos sem duplicações
+    def contar_servidores_consecutivos(meses, servidores_contabilizados):
+        servidores_consecutivos = 0
+        servidores = df_diarias['NOME_FAVORECIDO'].unique()
+    
+        for servidor in servidores:
+            if servidor in servidores_contabilizados:
+                continue  # Pular servidores que já foram contabilizados
+        
+            df_servidor = df_diarias[df_diarias['NOME_FAVORECIDO'] == servidor]
+            df_servidor = df_servidor.sort_values(by=['ANO', 'MES'], ascending=False)
+        
+            consecutivos = 0
+            mes_atual = ultimo_mes
+            ano_atual = ultimo_ano
+        
+            for _ in range(meses):
+                if df_servidor[(df_servidor['ANO'] == ano_atual) & (df_servidor['MES'] == mes_atual)].shape[0] > 0:
+                    consecutivos += 1
+                else:
+                    break
+            
+                # Ajustar para o mês anterior
+                mes_atual -= 1
+                if mes_atual == 0:
+                    mes_atual = 12
+                    ano_atual -= 1
+        
+            if consecutivos == meses:
+                servidores_consecutivos += 1
+                servidores_contabilizados.add(servidor)  # Adicionar o servidor à lista de contabilizados
+    
+        return servidores_consecutivos
+
+# Set para rastrear servidores já contabilizados
+    servidores_contabilizados = set()
+
+# Contar servidores sem duplicação
+    servidores_6_ou_mais_meses = contar_servidores_consecutivos(6, servidores_contabilizados)
+    servidores_4_5_meses = contar_servidores_consecutivos(4, servidores_contabilizados) + contar_servidores_consecutivos(5, servidores_contabilizados)
+    servidores_3_meses = contar_servidores_consecutivos(3, servidores_contabilizados)
+
+# Função para criar gráfico de velocímetro
+    def criar_grafico_velocimetro(titulo, valor, max_valor, cores):
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=valor,
+            title={'text': titulo},
+            gauge={'axis': {'range': [0, max_valor]},
+                'steps': [
+                    {'range': [0, max_valor/3], 'color': cores[0]},
+                    {'range': [max_valor/3, 2*max_valor/3], 'color': cores[1]},
+                    {'range': [2*max_valor/3, max_valor], 'color': cores[2]},
+                    ],
+                    'bar': {'color': '#042441'}  # Cor do ponteiro
+            }
+        ))
+        return fig
+
+# Máximo para o velocímetro
+    max_valor = max(servidores_3_meses, servidores_4_5_meses, servidores_6_ou_mais_meses)
+
+    col1, col2, col3 = st.columns(3)
+
+# Gráfico de velocímetro para 3 meses
+    with col1:
+        fig_3_meses = criar_grafico_velocimetro('Últimos 3 meses', servidores_3_meses, max_valor, ['#FCDC20', '#FCDC20', '#FCDC20'])
+        st.plotly_chart(fig_3_meses)
+
+# Gráfico de velocímetro para 4-5 meses
+    with col2:
+        fig_4_5_meses = criar_grafico_velocimetro('Últimos 4-5 meses', servidores_4_5_meses, max_valor, ['#E55115', '#E55115', '#E55115'])
+        st.plotly_chart(fig_4_5_meses)
+
+# Gráfico de velocímetro para 6 ou mais meses
+    with col3:
+        fig_6_ou_mais_meses = criar_grafico_velocimetro('Últimos 6 ou mais', servidores_6_ou_mais_meses, max_valor, ['#ff0000', '#ff0000', '#ff0000'])
+        st.plotly_chart(fig_6_ou_mais_meses)
+
+#======= Tabela dos servidores que receberam diárias nos ultimos meses consecutivos
+
+# Função para obter os detalhes dos servidores que receberam diárias consecutivas
+    def obter_servidores_consecutivos(meses, servidores_contabilizados):
+        servidores_detalhes = []
+        servidores = df_diarias['NOME_FAVORECIDO'].unique()
+    
+        for servidor in servidores:
+            if servidor in servidores_contabilizados:
+                continue  # Pular servidores que já foram contabilizados
+        
+            df_servidor = df_diarias[df_diarias['NOME_FAVORECIDO'] == servidor]
+            df_servidor = df_servidor.sort_values(by=['ANO', 'MES'], ascending=False)
+        
+            consecutivos = 0
+            mes_atual = ultimo_mes
+            ano_atual = ultimo_ano
+            valor_total = 0
+        
+            for _ in range(meses):
+                df_mes = df_servidor[(df_servidor['ANO'] == ano_atual) & (df_servidor['MES'] == mes_atual)]
+                if df_mes.shape[0] > 0:
+                    consecutivos += 1
+                    valor_total += df_mes['VALOR_PAGO'].sum()
+                else:
+                    break
+            
+                # Ajustar para o mês anterior
+                mes_atual -= 1
+                if mes_atual == 0:
+                    mes_atual = 12
+                    ano_atual -= 1
+        
+            if consecutivos == meses:
+                servidores_detalhes.append({'Nome do Servidor': servidor, 'Valor Total Pago': valor_total})
+                servidores_contabilizados.add(servidor)  # Adicionar o servidor à lista de contabilizados
+    
+        return servidores_detalhes
+
+# Set para rastrear servidores já contabilizados
+    servidores_contabilizados = set()
+
+# Obter detalhes dos servidores para 6 ou mais meses primeiro
+    servidores_6_ou_mais_meses_detalhes = obter_servidores_consecutivos(6, servidores_contabilizados)
+
+# Obter detalhes dos servidores para 4 e 5 meses
+    servidores_4_meses_detalhes = obter_servidores_consecutivos(4, servidores_contabilizados)
+    servidores_5_meses_detalhes = obter_servidores_consecutivos(5, servidores_contabilizados)
+    servidores_4_5_meses_detalhes = servidores_4_meses_detalhes + servidores_5_meses_detalhes
+
+# Obter detalhes dos servidores para 3 meses
+    servidores_3_meses_detalhes = obter_servidores_consecutivos(3, servidores_contabilizados)
+
+# Criar DataFrames para cada grupo
+    df_3_meses = pd.DataFrame(servidores_3_meses_detalhes)
+    df_4_5_meses = pd.DataFrame(servidores_4_5_meses_detalhes)
+    df_6_ou_mais_meses = pd.DataFrame(servidores_6_ou_mais_meses_detalhes)
+
+# Formatar o valor total como moeda, se a coluna existir
+    if not df_3_meses.empty:
+        df_3_meses['Valor Total Pago'] = df_3_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
+    else:
+        df_3_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
+
+    if not df_4_5_meses.empty:
+        df_4_5_meses['Valor Total Pago'] = df_4_5_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
+    else:
+        df_4_5_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
+
+    if not df_6_ou_mais_meses.empty:
+        df_6_ou_mais_meses['Valor Total Pago'] = df_6_ou_mais_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
+    else:
+        df_6_ou_mais_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
+
+# Exibir as tabelas
+    st.markdown("### Tabelas dos Servidores com Diárias Consecutivas")
+    col9, col10, col11 = st.columns(3)
+
+    with col9:
+        st.subheader('Servidores - 3 Meses')
+        st.dataframe(df_3_meses)
+
+    with col10:
+        st.subheader('Servidores - 4-5 Meses')
+        st.dataframe(df_4_5_meses)
+
+    with col11:
+        st.subheader('Servidores - 6 ou Mais Meses')
+        st.dataframe(df_6_ou_mais_meses)
 
 
 
