@@ -348,8 +348,60 @@ def run_dashboard():
         st.subheader('Servidores - 6 ou Mais Meses')
         st.dataframe(df_6_ou_mais_meses)
 
+#======= Gráfico de servidores que também recebem diárias de outros órgãos além do filtrado
+    st.subheader('Servidores Recebendo Diárias de Diferentes UGs')
 
+# Array com as UGs de interesse
+    ugs_interesse_despesas = [
+        520527, 540547, 540573, 140566, 300041, 300567, 540545, 250505, 510514, 510520, 
+        520555, 520537, 410506, 410504, 510517, 410510, 520528, 410548, 530539, 530538, 
+        410512, 530542, 130569, 130570, 130571, 130572, 410515, 510551, 530541, 510516, 
+        510556, 520026, 520531, 530032, 530543, 540037, 540574, 540035, 510024, 510526, 
+        520027, 520507, 540038, 520031, 520032, 520533, 350032, 360021, 510522, 260562, 
+        530031, 520028, 910997, 510021, 510557, 110010, 340051, 340568, 190047, 190049, 
+        190563, 190565, 540033, 510023, 510524, 510020, 410017, 410511, 410018, 410513, 
+        520030, 520536, 540034, 110009, 110564, 540036, 210013, 110015, 370001, 110008, 
+        110006, 410516, 520529, 520530, 520534, 530537, 990999, 520538, 380001, 520033
+    ]
 
+# Filtrar as diárias apenas das UGs de interesse
+    df_ugs_interesse = df_diarias[df_diarias['UG'].isin(ugs_interesse_despesas)]
+
+# Obter os servidores da UG filtrada pelo sidebar
+    servidores_ug_filtrada = df_filtered['NOME_FAVORECIDO'].unique()
+
+# Filtrar os servidores que receberam de outras UGs além da UG filtrada
+    servidores_outras_ugs = df_ugs_interesse[df_ugs_interesse['NOME_FAVORECIDO'].isin(servidores_ug_filtrada)]
+    servidores_outras_ugs = servidores_outras_ugs[~servidores_outras_ugs['UG'].isin(selected_ugs_despesas)]
+
+# Agrupar por servidor e calcular o valor total recebido de outras UGs
+    df_servidores_outras_ugs = servidores_outras_ugs.groupby('NOME_FAVORECIDO')['VALOR_PAGO'].sum().reset_index()
+    df_servidores_outras_ugs = df_servidores_outras_ugs.rename(columns={'NOME_FAVORECIDO': 'Nome do Servidor', 'VALOR_PAGO': 'Valor de Outras UGs'})
+
+# Verificar se há dados para exibir no gráfico
+    if not df_servidores_outras_ugs.empty:
+    # Criar o gráfico de barras horizontal
+        fig_outras_ugs = px.bar(
+            df_servidores_outras_ugs,
+            x='Valor de Outras UGs',
+            y='Nome do Servidor',
+            orientation='h',
+            title='Servidores Recebendo Diárias de Outras UGs',
+            labels={'Valor de Outras UGs': 'Valor Pago', 'Nome do Servidor': 'Servidor'},
+            text='Valor de Outras UGs'
+        )
+
+    # Formatar os valores no eixo x como moeda
+        fig_outras_ugs.update_traces(texttemplate='R$ %{x:,.2f}', textposition='outside')
+        fig_outras_ugs.update_layout(
+            xaxis_tickformat='R$,.2f',
+            yaxis_title='',
+            xaxis_title='Valor Pago'
+        )
+
+        st.plotly_chart(fig_outras_ugs)
+    else:
+        st.write('Nenhum servidor recebeu diárias de outras UGs além da UG filtrada.')
 
 if __name__ == "__main__":
     run_dashboard()
