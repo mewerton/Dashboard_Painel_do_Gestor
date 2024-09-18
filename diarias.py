@@ -49,7 +49,7 @@ def run_dashboard():
             df_mensal, 
             x='MES', 
             y=['VALOR_EMPENHADO', 'VALOR_PAGO'], 
-            title='Evolução Mensal das Despesas',
+            title='Evolução Mensal das Diárias',
             markers=True,  # Adiciona pontos nos dados
             line_shape='spline',  # Linhas suaves
             labels={'MES': 'Mês', 'value': 'Valor'},
