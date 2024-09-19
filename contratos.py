@@ -76,6 +76,18 @@ def run_dashboard():
         if df['VALOR_PERCENTUAL_TERCEIR'].dtype == 'object':
             df['VALOR_PERCENTUAL_TERCEIR'] = df['VALOR_PERCENTUAL_TERCEIR'].str.replace('%', '').astype(float) / 100
 
+        # Adicionar métricas ao painel
+        selected_ug_description = "Descrição não encontrada"
+    
+        if selected_ugs:
+            # Obter a descrição da UG selecionada
+            ug_descriptions = df[df['UG'].isin(selected_ugs)]['DESCRICAO_UG'].unique()
+            if len(ug_descriptions) > 0:
+                selected_ug_description = ug_descriptions[0]  # Pegue a primeira descrição encontrada
+
+        # Exibir o subtítulo com a descrição da UG selecionada
+        st.markdown(f'<h3 style="font-size:20px;"> {selected_ug_description}</h3>', unsafe_allow_html=True)
+
         # Obter a quantidade de contratos e valor total
         quantidade_contratos = len(df)
         valor_total_contratos = df['VALOR_TOTAL'].sum()

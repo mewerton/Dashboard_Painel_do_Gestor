@@ -37,6 +37,18 @@ def run_dashboard():
     valor_total_diarias = df_diarias['VALOR_PAGO'].sum()
     valor_total_formatado = locale.currency(valor_total_diarias, grouping=True)
 
+    # Adicionar métricas ao painel
+    selected_ug_description = "Descrição não encontrada"
+    
+    if selected_ugs_despesas:
+        # Obter a descrição da UG selecionada
+        ug_descriptions = df_filtered[df_filtered['UG'].isin(selected_ugs_despesas)]['DESCRICAO_UG'].unique()
+        if len(ug_descriptions) > 0:
+            selected_ug_description = ug_descriptions[0]  # Pegue a primeira descrição encontrada
+
+    # Exibir o subtítulo com a descrição da UG selecionada
+    st.markdown(f'<h3 style="font-size:20px;"> {selected_ug_description}</h3>', unsafe_allow_html=True)
+
     # Exibir as métricas
     st.subheader('Métricas de diárias')
     col3, col4 = st.columns(2)
