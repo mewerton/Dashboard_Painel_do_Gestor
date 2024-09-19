@@ -160,8 +160,6 @@ def run_dashboard():
 
 #===========================================================================================
     # Contagem dos servidores que receberam diárias em 3, 4-5, e 6 ou mais meses consecutivos
-    
-    # Adicionar a tabela de Favorecidos das Diárias com filtro por palavra-chave e cálculo do valor total filtrado
     st.subheader('Servidores recebendo Diárias Consecutivas')
 
 # Identificar o último mês e ano no dataset
@@ -322,19 +320,19 @@ def run_dashboard():
         df_6_ou_mais_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
 
 # Exibir as tabelas
-    st.markdown("### Tabelas dos Servidores com Diárias Consecutivas")
+    st.markdown("### Tabelas dos Servidores que recebem Diárias Consecutivas")
     col9, col10, col11 = st.columns(3)
 
     with col9:
-        st.subheader('Servidores - 3 Meses')
+        st.subheader('Nos 3 Útimos Meses')
         st.dataframe(df_3_meses)
 
     with col10:
-        st.subheader('Servidores - 4 a 5 Meses')
+        st.subheader('Nos 4 a 5 Útimos Meses')
         st.dataframe(df_4_5_meses)
 
     with col11:
-        st.subheader('Servidores - 6 ou Mais Meses')
+        st.subheader('Nos 6 Meses Útimos Meses ou Mais')
         st.dataframe(df_6_ou_mais_meses)
 
 
@@ -348,7 +346,10 @@ def run_dashboard():
     mostrar_tabela = False
 
 # Agrupar os dados de favorecidos
-    df_favorecidos = df_diarias.groupby(['NOME_FAVORECIDO', 'DESCRICAO_NATUREZA', 'COD_PROCESSO', 'NOTA_EMPENHO', 'OBSERVACAO_NE']).agg({'VALOR_PAGO': 'sum', 'MES': 'count'}).reset_index()
+    df_favorecidos = df_diarias.groupby(['NOME_FAVORECIDO', 'DESCRICAO_NATUREZA', 'COD_PROCESSO', 'NOTA_EMPENHO', 'OBSERVACAO_NE', 'MES', 'ANO']).agg({'VALOR_PAGO': 'sum'}).reset_index()
+
+# Criar a coluna 'Período' com o formato 'MM/AAAA'
+    df_favorecidos['Período'] = df_favorecidos['ANO'].astype(str) + '/' +  df_favorecidos['MES'].astype(str).str.zfill(2) 
 
 # Renomear colunas e reordenar
     df_favorecidos = df_favorecidos.rename(columns={
@@ -357,9 +358,8 @@ def run_dashboard():
         'VALOR_PAGO': 'Valor Pago',
         'COD_PROCESSO': 'Código do Processo',
         'NOTA_EMPENHO': 'Nota de Empenho',
-        'OBSERVACAO_NE': 'Observação',
-        'MES': 'Quantidade'
-    })[['Favorecido', 'Natureza', 'Valor Pago', 'Código do Processo', 'Nota de Empenho', 'Observação', 'Quantidade']]
+        'OBSERVACAO_NE': 'Observação'
+    })[['Favorecido', 'Natureza', 'Valor Pago', 'Período', 'Código do Processo', 'Nota de Empenho', 'Observação']]
 
 # Se o usuário digitou algo no campo de pesquisa, mostrar a tabela com o filtro
     if keyword:
@@ -381,6 +381,8 @@ def run_dashboard():
 
     # Exibir o valor total das linhas filtradas
         st.markdown(f"**Valor total pago das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
+
+
 
 #======= Gráfico de servidores que também recebem diárias de outros órgãos além do filtrado
     st.subheader('Servidores Recebendo Diárias de Diferentes UGs')
@@ -436,5 +438,6 @@ def run_dashboard():
         st.plotly_chart(fig_outras_ugs)
     else:
         st.write('Nenhum servidor recebeu diárias de outras UGs além da UG filtrada.')
+
 if __name__ == "__main__":
     run_dashboard()
