@@ -39,7 +39,7 @@ def run_dashboard():
 
     # Adicionar métricas ao painel
     selected_ug_description = "Descrição não encontrada"
-    
+
     if selected_ugs_despesas:
         # Obter a descrição da UG selecionada
         ug_descriptions = df_filtered[df_filtered['UG'].isin(selected_ugs_despesas)]['DESCRICAO_UG'].unique()
@@ -84,19 +84,39 @@ def run_dashboard():
         st.plotly_chart(fig_pizza)
 
 
+    # Inicializar variáveis de estado na sessão, se não estiverem definidas
+    if 'mostrar_resumo_mensal' not in st.session_state:
+        st.session_state.mostrar_resumo_mensal = False
+
+    if 'mostrar_resumo_categoria' not in st.session_state:
+        st.session_state.mostrar_resumo_categoria = False
+
     col7, col8 = st.columns(2)
 
+    # Adicionar botões para exibir as tabelas e atualizar o estado da sessão
     with col7:
-        st.subheader('Resumo Mensal de Despesas com Diárias')
-        df_mensal['VALOR_EMPENHADO'] = df_mensal['VALOR_EMPENHADO'].apply(lambda x: locale.currency(x, grouping=True))
-        df_mensal['VALOR_PAGO'] = df_mensal['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
-        st.dataframe(df_mensal)
+        if st.button('Resumo Mensal de Despesas com Diárias'):
+            st.session_state.mostrar_resumo_mensal = not st.session_state.mostrar_resumo_mensal
 
     with col8:
-        st.subheader('Resumo Detalhado por Categoria de Diária')
-        df_categoria['VALOR_EMPENHADO'] = df_categoria['VALOR_EMPENHADO'].apply(lambda x: locale.currency(x, grouping=True))
-        df_categoria['VALOR_PAGO'] = df_categoria['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
-        st.dataframe(df_categoria)
+        if st.button('Resumo Detalhado por Categoria de Diária'):
+            st.session_state.mostrar_resumo_categoria = not st.session_state.mostrar_resumo_categoria
+
+    # Mostrar as tabelas apenas se o estado da sessão correspondente for verdadeiro
+    if st.session_state.mostrar_resumo_mensal:
+        with col7:
+            st.subheader('Resumo Mensal de Despesas com Diárias')
+            df_mensal['VALOR_EMPENHADO'] = df_mensal['VALOR_EMPENHADO'].apply(lambda x: locale.currency(x, grouping=True))
+            df_mensal['VALOR_PAGO'] = df_mensal['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+            st.dataframe(df_mensal)
+
+    if st.session_state.mostrar_resumo_categoria:
+        with col8:
+            st.subheader('Resumo Detalhado por Categoria de Diária')
+            df_categoria['VALOR_EMPENHADO'] = df_categoria['VALOR_EMPENHADO'].apply(lambda x: locale.currency(x, grouping=True))
+            df_categoria['VALOR_PAGO'] = df_categoria['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+            st.dataframe(df_categoria)
+            
     
     # Agrupar por favorecido e calcular o valor total pago
     df_total_por_favorecido = df_diarias.groupby('NOME_FAVORECIDO')['VALOR_PAGO'].sum().reset_index()
@@ -137,49 +157,6 @@ def run_dashboard():
     # Exibir o gráfico
     st.plotly_chart(fig_favorecido, use_container_width=True)
 
-    # Adicionar a tabela de Favorecidos das Diárias com filtro por palavra-chave e cálculo do valor total filtrado
-    st.subheader('Favorecidos das Diárias')
-
-# Campo de entrada para a palavra-chave de pesquisa
-    keyword = st.text_input('Digite uma palavra-chave para filtrar a tabela:')
-
-# Inicializar uma variável para controlar a exibição da tabela
-    mostrar_tabela = False
-
-# Agrupar os dados de favorecidos
-    df_favorecidos = df_diarias.groupby(['NOME_FAVORECIDO', 'DESCRICAO_NATUREZA', 'COD_PROCESSO', 'NOTA_EMPENHO', 'OBSERVACAO_NE']).agg({'VALOR_PAGO': 'sum', 'MES': 'count'}).reset_index()
-
-# Renomear colunas e reordenar
-    df_favorecidos = df_favorecidos.rename(columns={
-        'NOME_FAVORECIDO': 'Favorecido',
-        'DESCRICAO_NATUREZA': 'Natureza',
-        'VALOR_PAGO': 'Valor Pago',
-        'COD_PROCESSO': 'Código do Processo',
-        'NOTA_EMPENHO': 'Nota de Empenho',
-        'OBSERVACAO_NE': 'Observação',
-        'MES': 'Quantidade'
-    })[['Favorecido', 'Natureza', 'Valor Pago', 'Código do Processo', 'Nota de Empenho', 'Observação', 'Quantidade']]
-
-# Se o usuário digitou algo no campo de pesquisa, mostrar a tabela com o filtro
-    if keyword:
-        df_favorecidos = df_favorecidos[df_favorecidos.apply(lambda row: row.astype(str).str.contains(keyword, case=False).any(), axis=1)]
-        mostrar_tabela = True  # Sempre mostrar a tabela ao pesquisar
-
-# Se o usuário não digitou nada, mostrar o botão para exibir a tabela completa
-    if not keyword:
-        if st.button('Exibir tudo'):
-            mostrar_tabela = True  # Mostrar a tabela ao clicar no botão
-
-# Calcular o valor total das linhas filtradas
-    valor_total_filtrado = df_favorecidos['Valor Pago'].sum()
-
-# Exibir a tabela apenas se a variável mostrar_tabela for True
-    if mostrar_tabela:
-    # Exibir a tabela
-        st.dataframe(df_favorecidos.style.format({'Valor Pago': 'R$ {:,.2f}'}))
-
-    # Exibir o valor total das linhas filtradas
-        st.markdown(f"**Valor total pago das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
 
 #===========================================================================================
     # Contagem dos servidores que receberam diárias em 3, 4-5, e 6 ou mais meses consecutivos
@@ -262,7 +239,7 @@ def run_dashboard():
 
 # Gráfico de velocímetro para 4-5 meses
     with col2:
-        fig_4_5_meses = criar_grafico_velocimetro('Últimos 4-5 meses', servidores_4_5_meses, max_valor, ['#E55115', '#E55115', '#E55115'])
+        fig_4_5_meses = criar_grafico_velocimetro('Últimos 4 a 5 meses', servidores_4_5_meses, max_valor, ['#E55115', '#E55115', '#E55115'])
         st.plotly_chart(fig_4_5_meses)
 
 # Gráfico de velocímetro para 6 ou mais meses
@@ -353,12 +330,57 @@ def run_dashboard():
         st.dataframe(df_3_meses)
 
     with col10:
-        st.subheader('Servidores - 4-5 Meses')
+        st.subheader('Servidores - 4 a 5 Meses')
         st.dataframe(df_4_5_meses)
 
     with col11:
         st.subheader('Servidores - 6 ou Mais Meses')
         st.dataframe(df_6_ou_mais_meses)
+
+
+    #====== Adicionar a tabela de Favorecidos das Diárias com filtro por palavra-chave e cálculo do valor total filtrado
+    st.subheader('Favorecidos das Diárias')
+
+# Campo de entrada para a palavra-chave de pesquisa
+    keyword = st.text_input('Digite uma palavra-chave para filtrar a tabela:')
+
+# Inicializar uma variável para controlar a exibição da tabela
+    mostrar_tabela = False
+
+# Agrupar os dados de favorecidos
+    df_favorecidos = df_diarias.groupby(['NOME_FAVORECIDO', 'DESCRICAO_NATUREZA', 'COD_PROCESSO', 'NOTA_EMPENHO', 'OBSERVACAO_NE']).agg({'VALOR_PAGO': 'sum', 'MES': 'count'}).reset_index()
+
+# Renomear colunas e reordenar
+    df_favorecidos = df_favorecidos.rename(columns={
+        'NOME_FAVORECIDO': 'Favorecido',
+        'DESCRICAO_NATUREZA': 'Natureza',
+        'VALOR_PAGO': 'Valor Pago',
+        'COD_PROCESSO': 'Código do Processo',
+        'NOTA_EMPENHO': 'Nota de Empenho',
+        'OBSERVACAO_NE': 'Observação',
+        'MES': 'Quantidade'
+    })[['Favorecido', 'Natureza', 'Valor Pago', 'Código do Processo', 'Nota de Empenho', 'Observação', 'Quantidade']]
+
+# Se o usuário digitou algo no campo de pesquisa, mostrar a tabela com o filtro
+    if keyword:
+        df_favorecidos = df_favorecidos[df_favorecidos.apply(lambda row: row.astype(str).str.contains(keyword, case=False).any(), axis=1)]
+        mostrar_tabela = True  # Sempre mostrar a tabela ao pesquisar
+
+# Se o usuário não digitou nada, mostrar o botão para exibir a tabela completa
+    if not keyword:
+        if st.button('Exibir tudo'):
+            mostrar_tabela = True  # Mostrar a tabela ao clicar no botão
+
+# Calcular o valor total das linhas filtradas
+    valor_total_filtrado = df_favorecidos['Valor Pago'].sum()
+
+# Exibir a tabela apenas se a variável mostrar_tabela for True
+    if mostrar_tabela:
+    # Exibir a tabela
+        st.dataframe(df_favorecidos.style.format({'Valor Pago': 'R$ {:,.2f}'}))
+
+    # Exibir o valor total das linhas filtradas
+        st.markdown(f"**Valor total pago das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
 
 #======= Gráfico de servidores que também recebem diárias de outros órgãos além do filtrado
     st.subheader('Servidores Recebendo Diárias de Diferentes UGs')
@@ -414,6 +436,5 @@ def run_dashboard():
         st.plotly_chart(fig_outras_ugs)
     else:
         st.write('Nenhum servidor recebeu diárias de outras UGs além da UG filtrada.')
-
 if __name__ == "__main__":
     run_dashboard()

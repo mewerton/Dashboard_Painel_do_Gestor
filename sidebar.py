@@ -15,7 +15,7 @@ def load_sidebar(df, dashboard_name):
             110006, 410516, 520529, 520530, 520534, 530537, 990999, 520538, 380001, 520033
         ]
 
-        ugs_default_contratos = [340051]
+        ugs_default_contratos = [410512]
 
         selected_ugs = st.sidebar.multiselect(
             'Selecione a UG de interesse:',
@@ -57,7 +57,7 @@ def load_sidebar(df, dashboard_name):
             110006, 410516, 520529, 520530, 520534, 530537, 990999, 520538, 380001, 520033
         ]
 
-        ugs_default_despesas = [340051]
+        ugs_default_despesas = [410512]
 
         selected_ugs_despesas = st.sidebar.multiselect(
             'Selecione a UG de interesse:',
