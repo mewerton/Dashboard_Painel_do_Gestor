@@ -21,7 +21,6 @@ Git
 Primeiro, você precisa clonar o projeto do GitHub. Abra o Prompt de Comando ou o PowerShell e execute o comando abaixo:
 
 git clone https://github.com/mewerton/painelgestor
-cd painel-do-gestor
 
 # Passo 2: Configurar o Ambiente Virtual
 No Windows, é altamente recomendado utilizar um ambiente virtual para gerenciar as dependências do projeto. Para criar e ativar um ambiente virtual, execute os comandos abaixo no Prompt de Comando ou PowerShell:
