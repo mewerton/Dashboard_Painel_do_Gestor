@@ -20,7 +20,7 @@ Git
 # Passo 1: Clonar o Repositório
 Primeiro, você precisa clonar o projeto do GitHub. Abra o Prompt de Comando ou o PowerShell e execute o comando abaixo:
 
-git clone https://github.com/seuusuario/painel-do-gestor.git
+git clone https://github.com/mewerton/painelgestor
 cd painel-do-gestor
 
 # Passo 2: Configurar o Ambiente Virtual
