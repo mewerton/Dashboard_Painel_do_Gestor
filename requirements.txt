@@ -3,3 +3,9 @@ pandas
 plotly
 openpyxl
 scikit-learn
+gdown 
+pyarrow 
+google-auth 
+google-auth-oauthlib 
+google-auth-httplib2 
+google-api-python-client

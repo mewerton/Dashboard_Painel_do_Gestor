@@ -7,8 +7,12 @@ backup/
 # Ignorar a pasta database
 database/
 
+# Ignorar a pasta da credencial
+connection
+
 # Ignorar o arquivos .py
 test_tensorflow.py
+test.py
 app2.py
 app3.py
 app4.py
