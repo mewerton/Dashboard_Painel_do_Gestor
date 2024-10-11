@@ -19,6 +19,7 @@ app4.py
 app5.py
 validation.py
 despesas.py
+contrato.py
 despesas_ug2.py
 
 # Ignorar a pasta venv (ambiente virtual Python)

@@ -28,32 +28,8 @@ def run_dashboard():
             st.error(f"Ocorreu um erro ao carregar o arquivo: {e}")
             return None
 
-    @st.cache_data
-    def load_aditivos_data(file_path):
-        try:
-            # Carregar o arquivo Parquet de aditivos
-            df_aditivos = pd.read_parquet(file_path)
-
-            # Conversão das colunas de timestamp para datetime
-            df_aditivos['DATA_VIGENCIA_INICIAL'] = pd.to_datetime(df_aditivos['DATA_VIGENCIA_INICIAL'], unit='ms', errors='coerce')
-            df_aditivos['DATA_VIGENCIA_FINAL'] = pd.to_datetime(df_aditivos['DATA_VIGENCIA_FINAL'], unit='ms', errors='coerce')
-            df_aditivos['DATA_CELEBRACAO'] = pd.to_datetime(df_aditivos['DATA_CELEBRACAO'], unit='ms', errors='coerce')
-            df_aditivos['DATA_PUBLICACAO'] = pd.to_datetime(df_aditivos['DATA_PUBLICACAO'], unit='ms', errors='coerce')
-
-            return df_aditivos
-        except FileNotFoundError:
-            st.error(f"O arquivo {file_path} não foi encontrado.")
-            return None
-        except Exception as e:
-            st.error(f"Ocorreu um erro ao carregar o arquivo: {e}")
-            return None
-
     file_path = "./database/lista_contratos_siafe.parquet"
-    aditivos_path = "./database/aditivos_reajustes.parquet"
-
-    # Carregar os datasets
     df = load_data(file_path)
-    df_aditivos = load_aditivos_data(aditivos_path)
 
     if df is not None:
         # Carregar o sidebar específico para contratos
@@ -186,50 +162,22 @@ def run_dashboard():
         df['DATA_FIM_VIGENCIA'] = pd.to_datetime(df['DATA_FIM_VIGENCIA']).dt.strftime('%d/%m/%Y')
         df['VALOR_TOTAL'] = df['VALOR_TOTAL'].apply(lambda x: locale.currency(x, grouping=True))
 
-        # Exibir tabela de contratos
+# Adicionar o título
         st.subheader('Contratos da Unidade Gestora')
 
-        # Campo de entrada para a palavra-chave de pesquisa
+# Campo de entrada para a palavra-chave de pesquisa
         keyword = st.text_input('Digite uma palavra-chave para filtrar os contratos:')
 
-        # Aplicar o filtro se uma palavra-chave for inserida
+# Aplicar o filtro se uma palavra-chave for inserida
         if keyword:
             df = df[df.apply(lambda row: row.astype(str).str.contains(keyword, case=False).any(), axis=1)]
 
-        # Mostrar todos os contratos da coluna "CODIGO_CONTRATO" da UG filtrada
-        st.write(df[['CODIGO_CONTRATO', 'UG', 'NOME_CONTRATANTE', 'NOME_CONTRATADA', 'VALOR_TOTAL','NOME_CONTRATO', 'DATA_INICIO_VIGENCIA', 'DATA_FIM_VIGENCIA', 'DSC_SITUACAO']])
-
-        
-
-        # Mostrar tabela de Aditivos no final do dashboard
-        if df_aditivos is not None:
-        # Filtrar os aditivos pelos contratos exibidos
-            df_aditivos_filtrados = df_aditivos[df_aditivos['COD_CONTRATO'].isin(df['CODIGO_CONTRATO'].astype(int))]
-
-        # Formatação dos dados da tabela de aditivos
-            df_aditivos_filtrados.loc[:, 'COD_CONTRATO'] = df_aditivos_filtrados['COD_CONTRATO'].astype(int).astype(str)
-            df_aditivos_filtrados['DATA_VIGENCIA_INICIAL'] = pd.to_datetime(df_aditivos_filtrados['DATA_VIGENCIA_INICIAL'], unit='ms').dt.strftime('%d/%m/%Y')
-            df_aditivos_filtrados['DATA_VIGENCIA_FINAL'] = pd.to_datetime(df_aditivos_filtrados['DATA_VIGENCIA_FINAL'], unit='ms').dt.strftime('%d/%m/%Y')
-            df_aditivos_filtrados['DATA_PUBLICACAO'] = pd.to_datetime(df_aditivos_filtrados['DATA_PUBLICACAO'], unit='ms').dt.strftime('%d/%m/%Y')
-
-        # Criar uma cópia para exibição e formatar valores como moeda
-            df_aditivos_filtrados_exibir = df_aditivos_filtrados.copy()
-            df_aditivos_filtrados_exibir['VALOR_FORMATADO'] = df_aditivos_filtrados_exibir['VALOR'].apply(lambda x: locale.currency(x, grouping=True) if pd.notnull(x) else 'R$ 0,00')
-
-            st.subheader('Aditivos e Reajustes dos Contratos Exibidos')
-
-        # Exibir tabela de aditivos com a coluna formatada para exibição
-            st.write(df_aditivos_filtrados_exibir[['COD_CONTRATO', 'TIPO', 'NUM_ORIGINAL', 'NUM_PROCESSO', 'DATA_VIGENCIA_INICIAL', 'DATA_VIGENCIA_FINAL', 'DATA_PUBLICACAO', 'VALOR_FORMATADO', 'DSC_OBJETO']])
-
-        # Calcular o valor total dos aditivos filtrados (mantendo a coluna 'VALOR' como numérica)
-            valor_total_aditivos = df_aditivos_filtrados['VALOR'].sum()
-
-        # Formatar o valor total como moeda
-            valor_total_formatado = locale.currency(valor_total_aditivos, grouping=True)
-
-        # Exibir o valor total abaixo da tabela
-            st.markdown(f"**Valor total dos Aditivos/Reajustes filtrados: {valor_total_formatado}**")
+# Mostrar todos os contratos da coluna "CODIGO_CONTRATO" da UG filtrada
+        st.write(df[['CODIGO_CONTRATO', 'UG', 'NOME_CONTRATANTE', 'NOME_CONTRATADA', 'NOME_CONTRATO', 'DATA_INICIO_VIGENCIA', 'DATA_FIM_VIGENCIA', 'VALOR_TOTAL', 'DSC_SITUACAO']])
 
 
 if __name__ == "__main__":
     run_dashboard()
+
+
+

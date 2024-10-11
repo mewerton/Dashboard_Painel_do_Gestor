@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 def load_sidebar(df, dashboard_name):
     if dashboard_name == 'Contratos':
@@ -22,6 +23,10 @@ def load_sidebar(df, dashboard_name):
             options=ugs_interesse_contratos,
             default=ugs_default_contratos
         )
+
+        # Conversão de timestamps para datetime
+        df['DATA_INICIO_VIGENCIA'] = pd.to_datetime(df['DATA_INICIO_VIGENCIA'], unit='ms')
+        df['DATA_FIM_VIGENCIA'] = pd.to_datetime(df['DATA_FIM_VIGENCIA'], unit='ms')
 
         min_data_inicio = df['DATA_INICIO_VIGENCIA'].min().date()
         max_data_inicio = df['DATA_INICIO_VIGENCIA'].max().date()
