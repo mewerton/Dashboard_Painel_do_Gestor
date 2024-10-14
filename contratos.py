@@ -203,32 +203,33 @@ def run_dashboard():
 
         # Mostrar tabela de Aditivos no final do dashboard
         if df_aditivos is not None:
-        # Filtrar os aditivos pelos contratos exibidos
-            df_aditivos_filtrados = df_aditivos[df_aditivos['COD_CONTRATO'].isin(df['CODIGO_CONTRATO'].astype(int))]
+            # Filtrar os aditivos pelos contratos exibidos e criar uma cópia explícita para evitar o alerta
+            df_aditivos_filtrados = df_aditivos[df_aditivos['COD_CONTRATO'].isin(df['CODIGO_CONTRATO'].astype(int))].copy()
 
-        # Formatação dos dados da tabela de aditivos
-            df_aditivos_filtrados.loc[:, 'COD_CONTRATO'] = df_aditivos_filtrados['COD_CONTRATO'].astype(int).astype(str)
+            # Formatação dos dados da tabela de aditivos
+            df_aditivos_filtrados['COD_CONTRATO'] = df_aditivos_filtrados['COD_CONTRATO'].astype(int).astype(str)
             df_aditivos_filtrados['DATA_VIGENCIA_INICIAL'] = pd.to_datetime(df_aditivos_filtrados['DATA_VIGENCIA_INICIAL'], unit='ms').dt.strftime('%d/%m/%Y')
             df_aditivos_filtrados['DATA_VIGENCIA_FINAL'] = pd.to_datetime(df_aditivos_filtrados['DATA_VIGENCIA_FINAL'], unit='ms').dt.strftime('%d/%m/%Y')
             df_aditivos_filtrados['DATA_PUBLICACAO'] = pd.to_datetime(df_aditivos_filtrados['DATA_PUBLICACAO'], unit='ms').dt.strftime('%d/%m/%Y')
 
-        # Criar uma cópia para exibição e formatar valores como moeda
+            # Criar uma cópia para exibição e formatar valores como moeda
             df_aditivos_filtrados_exibir = df_aditivos_filtrados.copy()
             df_aditivos_filtrados_exibir['VALOR_FORMATADO'] = df_aditivos_filtrados_exibir['VALOR'].apply(lambda x: locale.currency(x, grouping=True) if pd.notnull(x) else 'R$ 0,00')
 
             st.subheader('Aditivos e Reajustes dos Contratos Exibidos')
 
-        # Exibir tabela de aditivos com a coluna formatada para exibição
+            # Exibir tabela de aditivos com a coluna formatada para exibição
             st.write(df_aditivos_filtrados_exibir[['COD_CONTRATO', 'TIPO', 'NUM_ORIGINAL', 'NUM_PROCESSO', 'DATA_VIGENCIA_INICIAL', 'DATA_VIGENCIA_FINAL', 'DATA_PUBLICACAO', 'VALOR_FORMATADO', 'DSC_OBJETO']])
 
-        # Calcular o valor total dos aditivos filtrados (mantendo a coluna 'VALOR' como numérica)
+            # Calcular o valor total dos aditivos filtrados (mantendo a coluna 'VALOR' como numérica)
             valor_total_aditivos = df_aditivos_filtrados['VALOR'].sum()
 
-        # Formatar o valor total como moeda
+            # Formatar o valor total como moeda
             valor_total_formatado = locale.currency(valor_total_aditivos, grouping=True)
 
-        # Exibir o valor total abaixo da tabela
+            # Exibir o valor total abaixo da tabela
             st.markdown(f"**Valor total dos Aditivos/Reajustes filtrados: {valor_total_formatado}**")
+
 
 
 if __name__ == "__main__":
