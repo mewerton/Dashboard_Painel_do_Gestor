@@ -19,9 +19,6 @@ FOLDER_ID = os.getenv('FOLDER_ID')
 # ID da pasta do Google Drive onde estão os dados "contratos"
 CONTRATOS_FOLDER_ID = os.getenv('CONTRATOS_FOLDER_ID')
 
-# Variável global para manter os dados carregados de diárias/despesas
-cached_diarias_despesas = None
-
 # Função para autenticar e construir o serviço Google Drive API
 def get_drive_service():
     credentials = service_account.Credentials.from_service_account_file(
@@ -72,7 +69,7 @@ def download_file_from_drive(service, file_id):
     response = request.execute()
     return BytesIO(response)
 
-# Função para carregar arquivos de despesas e diárias
+# Função para carregar arquivos de despesas e diárias, com cache
 @st.cache_resource
 def load_parquet_data_from_drive():
     service = get_drive_service()
@@ -98,7 +95,7 @@ def load_parquet_data_from_drive():
 
     return pd.concat(data_frames, ignore_index=True)
 
-# Função para carregar arquivos de contratos
+# Função para carregar arquivos de contratos (sem alterações)
 @st.cache_resource
 def load_contracts_data():
     service = get_drive_service()
@@ -125,19 +122,16 @@ def load_contracts_data():
 
     return df_aditivos, df_contratos
 
-# Função principal para carregar os dados de despesas e diárias e usá-los no dashboard
-@st.cache_resource
+# Função principal para carregar os dados de despesas e diárias
 def load_data():
-    global cached_diarias_despesas
-    if cached_diarias_despesas is None:
-        # Placeholder para a mensagem de carregamento
-        loading_message = st.empty()
-        loading_message.info("Carregando os dados... Isso pode demorar um pouco.")
+    # Apenas uma mensagem de carregamento para a primeira chamada
+    loading_message = st.empty()
+    loading_message.info("Carregando os dados... Isso pode demorar um pouco.")
 
-        # Carregar os dados de despesas/diárias
-        cached_diarias_despesas = load_parquet_data_from_drive()
+    # Chamar a função com cache
+    data = load_parquet_data_from_drive()
 
-        # Remover a mensagem de carregamento após os dados serem carregados
-        loading_message.empty()
+    # Remover a mensagem de carregamento após os dados serem carregados
+    loading_message.empty()
 
-    return cached_diarias_despesas
+    return data
