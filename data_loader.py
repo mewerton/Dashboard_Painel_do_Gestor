@@ -13,8 +13,14 @@ load_dotenv()
 # Caminho para o arquivo de credenciais da conta de serviço
 CREDENTIALS_FILE = './connection/painelgestor-1f0078538d0c.json'
 
-# ID da pasta do Google Drive onde estão os dados
+# ID da pasta do Google Drive onde estão os dados "dataset_despesas_detalhado"
 FOLDER_ID = os.getenv('FOLDER_ID')
+
+# ID da pasta do Google Drive onde estão os dados "contratos"
+CONTRATOS_FOLDER_ID = os.getenv('CONTRATOS_FOLDER_ID')
+
+# Variável global para manter os dados carregados de diárias/despesas
+cached_diarias_despesas = None
 
 # Função para autenticar e construir o serviço Google Drive API
 def get_drive_service():
@@ -24,7 +30,7 @@ def get_drive_service():
     )
     return build('drive', 'v3', credentials=credentials)
 
-# Função para listar os arquivos .parquet na pasta do Google Drive
+# Função para listar arquivos .parquet na pasta de despesas e diárias no Google Drive
 def list_parquet_files(service):
     results = service.files().list(
         q=f"'{FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'",
@@ -46,13 +52,27 @@ def list_parquet_files(service):
 
     return parquet_files
 
+# Função para listar arquivos .parquet na pasta de contratos
+def list_contracts_files(service):
+    # Listar os arquivos na pasta "contratos" usando o ID fornecido
+    contract_files = service.files().list(
+        q=f"'{CONTRATOS_FOLDER_ID}' in parents and mimeType='application/octet-stream'",
+        fields="files(id, name)"
+    ).execute().get('files', [])
+
+    if not contract_files:
+        st.error('Nenhum arquivo de contratos encontrado na pasta "contratos" do Google Drive.')
+        return []
+
+    return contract_files
+
 # Função para baixar arquivos do Google Drive
 def download_file_from_drive(service, file_id):
     request = service.files().get_media(fileId=file_id)
     response = request.execute()
     return BytesIO(response)
 
-# Função para carregar arquivos .parquet de um determinado ano com barra de progresso
+# Função para carregar arquivos de despesas e diárias
 @st.cache_resource
 def load_parquet_data_from_drive():
     service = get_drive_service()
@@ -78,16 +98,46 @@ def load_parquet_data_from_drive():
 
     return pd.concat(data_frames, ignore_index=True)
 
-# Função principal para carregar os dados e usá-los no dashboard
+# Função para carregar arquivos de contratos
+@st.cache_resource
+def load_contracts_data():
+    service = get_drive_service()
+    contract_files = list_contracts_files(service)
+
+    if not contract_files:
+        st.error('Nenhum arquivo de contratos encontrado no Google Drive.')
+        return pd.DataFrame(), pd.DataFrame()
+
+    # Procurar os arquivos específicos de aditivos e lista de contratos
+    aditivos_file = next((file for file in contract_files if file['name'] == 'aditivos_reajustes.parquet'), None)
+    contratos_file = next((file for file in contract_files if file['name'] == 'lista_contratos_siafe.parquet'), None)
+
+    if not aditivos_file or not contratos_file:
+        st.error('Arquivos "aditivos_reajustes.parquet" ou "lista_contratos_siafe.parquet" não encontrados.')
+        return pd.DataFrame(), pd.DataFrame()
+
+    # Baixar os arquivos e carregar como DataFrames
+    aditivos_content = download_file_from_drive(service, aditivos_file['id'])
+    contratos_content = download_file_from_drive(service, contratos_file['id'])
+
+    df_aditivos = pq.read_table(aditivos_content).to_pandas()
+    df_contratos = pq.read_table(contratos_content).to_pandas()
+
+    return df_aditivos, df_contratos
+
+# Função principal para carregar os dados de despesas e diárias e usá-los no dashboard
+@st.cache_resource
 def load_data():
-    # Placeholder para a mensagem de carregamento
-    loading_message = st.empty()
-    loading_message.info("Carregando os dados... Isso pode demorar um pouco.")
+    global cached_diarias_despesas
+    if cached_diarias_despesas is None:
+        # Placeholder para a mensagem de carregamento
+        loading_message = st.empty()
+        loading_message.info("Carregando os dados... Isso pode demorar um pouco.")
 
-    # Carregar os dados
-    data = load_parquet_data_from_drive()
+        # Carregar os dados de despesas/diárias
+        cached_diarias_despesas = load_parquet_data_from_drive()
 
-    # Remover a mensagem de carregamento após os dados serem carregados
-    loading_message.empty()
+        # Remover a mensagem de carregamento após os dados serem carregados
+        loading_message.empty()
 
-    return data
+    return cached_diarias_despesas
