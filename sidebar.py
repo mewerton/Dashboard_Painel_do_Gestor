@@ -3,26 +3,30 @@ import pandas as pd
 
 def load_sidebar(df, dashboard_name):
     if dashboard_name == 'Contratos':
-        # Filtros específicos para o dashboard de contratos
-        ugs_interesse_contratos = [
-            520527, 540547, 540573, 140566, 300041, 300567, 540545, 250505, 510514, 510520, 
-            520555, 520537, 410506, 410504, 510517, 410510, 520528, 410548, 530539, 530538, 
-            410512, 530542, 130569, 130570, 130571, 130572, 410515, 510551, 530541, 510516, 
-            510556, 520026, 520531, 530032, 530543, 540037, 540574, 540035, 510024, 510526, 
-            520027, 520507, 540038, 520031, 520032, 520533, 350032, 360021, 510522, 260562, 
-            530031, 520028, 910997, 510021, 510557, 110010, 340051, 340568, 190047, 190049, 
-            190563, 190565, 540033, 510023, 510524, 510020, 410017, 410511, 410018, 410513, 
-            520030, 520536, 540034, 110009, 110564, 540036, 210013, 110015, 370001, 110008, 
-            110006, 410516, 520529, 520530, 520534, 530537, 990999, 520538, 380001, 520033
+        # Carregar o CSV contendo UG, descrição e sigla
+        df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
+
+        # Mapeamento UG -> Descrição e Sigla
+        ugs_interesse_contratos = df_ug_info['UG'].tolist()
+        siglas_ugs_interesse = df_ug_info['SIGLA_UG'].tolist()
+
+        # Combinar as opções de UG e SIGLA para exibição clara
+        options_combined_contratos = [
+            f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse_contratos, siglas_ugs_interesse)
         ]
 
+        # Definir uma UG padrão
         ugs_default_contratos = [410512]
 
-        selected_ugs = st.sidebar.multiselect(
-            'Selecione a UG de interesse:',
-            options=ugs_interesse_contratos,
-            default=ugs_default_contratos
+        # Filtro para seleção de UG ou Sigla
+        selected_ug_sigla_contratos = st.sidebar.multiselect(
+            'Selecione a UG ou a SIGLA de interesse:',
+            options=options_combined_contratos,
+            default=[f"{ug} - {siglas_ugs_interesse[ugs_interesse_contratos.index(ug)]}" for ug in ugs_default_contratos]
         )
+
+        # Separar as UGs selecionadas
+        selected_ugs_contratos = [int(option.split(" - ")[0]) for option in selected_ug_sigla_contratos]
 
         # Conversão de timestamps para datetime
         df['DATA_INICIO_VIGENCIA'] = pd.to_datetime(df['DATA_INICIO_VIGENCIA'], unit='ms')
@@ -46,30 +50,35 @@ def load_sidebar(df, dashboard_name):
             value=(min_data_fim, max_data_fim)
         )
 
-        return selected_ugs, selected_data_inicio, selected_data_fim
+        return selected_ugs_contratos, selected_data_inicio, selected_data_fim
 
     else:
-        # Filtros padrões para os outros dashboards que requerem ANO
-        ugs_interesse_despesas = [
-            520527, 540547, 540573, 140566, 300041, 300567, 540545, 250505, 510514, 510520, 
-            520555, 520537, 410506, 410504, 510517, 410510, 520528, 410548, 530539, 530538, 
-            410512, 530542, 130569, 130570, 130571, 130572, 410515, 510551, 530541, 510516, 
-            510556, 520026, 520531, 530032, 530543, 540037, 540574, 540035, 510024, 510526, 
-            520027, 520507, 540038, 520031, 520032, 520533, 350032, 360021, 510522, 260562, 
-            530031, 520028, 910997, 510021, 510557, 110010, 340051, 340568, 190047, 190049, 
-            190563, 190565, 540033, 510023, 510524, 510020, 410017, 410511, 410018, 410513, 
-            520030, 520536, 540034, 110009, 110564, 540036, 210013, 110015, 370001, 110008, 
-            110006, 410516, 520529, 520530, 520534, 530537, 990999, 520538, 380001, 520033
+        # Filtros padrões para o dashboard de despesas e diárias
+        df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
+
+        # Mapeamento UG -> Descrição e Sigla
+        ugs_interesse_despesas = df_ug_info['UG'].tolist()
+        siglas_ugs_interesse = df_ug_info['SIGLA_UG'].tolist()
+
+        # Combinar as opções de UG e SIGLA para exibição clara
+        options_combined = [
+            f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse_despesas, siglas_ugs_interesse)
         ]
 
+        # Definir uma UG padrão
         ugs_default_despesas = [410512]
 
-        selected_ugs_despesas = st.sidebar.multiselect(
-            'Selecione a UG de interesse:',
-            options=ugs_interesse_despesas,
-            default=ugs_default_despesas
+        # Filtro para seleção de UG ou Sigla
+        selected_ug_sigla = st.sidebar.multiselect(
+            'Selecione a UG ou a SIGLA de interesse:',
+            options=options_combined,
+            default=[f"{ug} - {siglas_ugs_interesse[ugs_interesse_despesas.index(ug)]}" for ug in ugs_default_despesas]
         )
 
+        # Separar as UGs selecionadas
+        selected_ugs = [int(option.split(" - ")[0]) for option in selected_ug_sigla]
+
+        # Filtrar pelo ano e mês
         min_ano = int(df['ANO'].min())
         max_ano = int(df['ANO'].max())
 
@@ -92,7 +101,7 @@ def load_sidebar(df, dashboard_name):
             value=(min_mes, max_mes)
         )
 
-        return selected_ugs_despesas, selected_ano, selected_mes
+        return selected_ugs, selected_ano, selected_mes
 
 
 def navigate_pages():
