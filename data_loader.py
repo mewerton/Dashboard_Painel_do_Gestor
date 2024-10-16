@@ -122,6 +122,20 @@ def load_contracts_data():
 
     return df_aditivos, df_contratos
 
+# Função para carregar o arquivo de servidores (folha de pagamento)
+@st.cache_resource
+def load_servidores_data():
+    file_path = './database/dados_folha_09_2024.parquet'
+    
+    if not os.path.exists(file_path):
+        st.error(f'Arquivo {file_path} não encontrado.')
+        return pd.DataFrame()
+    
+    # Carregar o arquivo .parquet como DataFrame
+    df_servidores = pd.read_parquet(file_path)
+    
+    return df_servidores
+
 # Função principal para carregar os dados de despesas e diárias
 def load_data():
     # Apenas uma mensagem de carregamento para a primeira chamada

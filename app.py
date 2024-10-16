@@ -6,6 +6,10 @@ import hashlib
 import despesas_ug
 import diarias
 import contratos
+import servidores  # Novo dashboard de Servidores
+import adiantamentos  # Novo dashboard de Servidores
+import combustivel  # Novo dashboard de Servidores
+import orcamento  # Novo dashboard de Servidores
 from sidebar import load_sidebar, navigate_pages
 from data_loader import load_data  # Importar o módulo de carregamento de dados
 
@@ -64,3 +68,11 @@ else:
         diarias.run_dashboard()
     elif selected_page == 'Contratos':
         contratos.run_dashboard()
+    elif selected_page == 'Servidores': 
+        servidores.run_dashboard()
+    elif selected_page == 'Adiantamentos': 
+        adiantamentos.run_dashboard()
+    elif selected_page == 'Combustível': 
+        combustivel.run_dashboard()
+    elif selected_page == 'Orçamento': 
+        orcamento.run_dashboard()

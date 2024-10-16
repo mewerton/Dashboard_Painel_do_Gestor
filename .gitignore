@@ -21,6 +21,9 @@ validation.py
 despesas.py
 contrato.py
 despesas_ug2.py
+adiantamentos.py
+orcamento.py
+combustivel.py
 
 # Ignorar a pasta venv (ambiente virtual Python)
 venv/

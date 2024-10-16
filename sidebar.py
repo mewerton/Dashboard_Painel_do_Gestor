@@ -51,6 +51,8 @@ def load_sidebar(df, dashboard_name):
         )
 
         return selected_ugs_contratos, selected_data_inicio, selected_data_fim
+    
+    # inserir os filtros dos servidores
 
     else:
         # Filtros padrões para o dashboard de despesas e diárias
@@ -107,6 +109,6 @@ def load_sidebar(df, dashboard_name):
 def navigate_pages():
     page = st.sidebar.radio(
         'Navegação',
-        ('Despesas Detalhado', 'Diárias', 'Contratos')
+        ('Despesas Detalhado', 'Diárias', 'Contratos', 'Servidores', 'Adiantamentos', 'Combustível', 'Orçamento')
     )
     return page
