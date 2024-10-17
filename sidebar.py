@@ -52,8 +52,6 @@ def load_sidebar(df, dashboard_name):
 
         return selected_ugs_contratos, selected_data_inicio, selected_data_fim
     
-    # inserir os filtros dos servidores
-
     else:
         # Filtros padrões para o dashboard de despesas e diárias
         df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
@@ -105,7 +103,50 @@ def load_sidebar(df, dashboard_name):
 
         return selected_ugs, selected_ano, selected_mes
 
+def load_sidebar_servidores():
+    # Carregar o CSV contendo UG, descrição, sigla e Unidade
+    df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
 
+    # Mapeamento UG -> Descrição, SIGLA e Unidade
+    ugs_interesse = df_ug_info['UG'].tolist()
+    siglas_ugs_interesse = df_ug_info['SIGLA_UG'].tolist()
+    unidades_ugs_interesse = df_ug_info['Unidade'].tolist()  # Alterado para 'Unidade'
+
+    # Combinar as opções de UG e SIGLA para exibição clara
+    options_combined_servidores = [
+        f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse, siglas_ugs_interesse)
+    ]
+
+    # Filtro para seleção de UG ou Sigla
+    selected_ug_sigla_servidores = st.sidebar.text_input(
+        'Digite a UG ou a SIGLA de interesse:'
+    )
+
+    # Verificar se a UG ou SIGLA existe no dataset
+    if selected_ug_sigla_servidores:
+        try:
+            # Tentar encontrar a UG digitada
+            if selected_ug_sigla_servidores.isdigit():
+                selected_ug = int(selected_ug_sigla_servidores)
+                unidade_filtrada = df_ug_info.loc[df_ug_info['UG'] == selected_ug, 'Unidade'].values[0]
+            else:
+                # Caso tenha sido digitada uma SIGLA
+                selected_sigla = selected_ug_sigla_servidores.upper()
+                unidade_filtrada = df_ug_info.loc[df_ug_info['SIGLA_UG'] == selected_sigla, 'Unidade'].values[0]
+
+            # Filtrar todas as UGs que pertencem à mesma Unidade
+            ugs_mesma_unidade = df_ug_info[df_ug_info['Unidade'] == unidade_filtrada]
+            st.sidebar.write(f"Unidade {unidade_filtrada} selecionada: {len(ugs_mesma_unidade)} UGs encontradas.")
+
+            return ugs_mesma_unidade['UG'].tolist()
+
+        except IndexError:
+            st.sidebar.error("UG ou SIGLA não encontrada. Tente novamente.")
+            return []
+    else:
+        st.sidebar.warning("Digite uma UG ou SIGLA para filtrar.")
+        return []
+    
 def navigate_pages():
     page = st.sidebar.radio(
         'Navegação',
