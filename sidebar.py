@@ -3,7 +3,7 @@ import pandas as pd
 
 def load_sidebar(df, dashboard_name):
 
-    # ========= FILTROS DOS SERVIDORES =========
+     # ========= FILTROS DOS SERVIDORES =========
 
     if dashboard_name == 'Servidores':
         # Carregar o CSV contendo UG, descrição, sigla e Unidade
@@ -37,18 +37,19 @@ def load_sidebar(df, dashboard_name):
                 # Obter a unidade associada à primeira UG selecionada
                 unidade_filtrada = df_ug_info.loc[df_ug_info['UG'] == selected_ugs_servidores[0], 'Unidade'].values[0]
 
-                # Filtrar todas as UGs que pertencem à mesma Unidade
-                ugs_mesma_unidade = df_ug_info[df_ug_info['Unidade'] == unidade_filtrada]
-                st.sidebar.write(f"Unidade {unidade_filtrada} selecionada: {len(ugs_mesma_unidade)} UGs encontradas.")
+                # Exibir a unidade selecionada no sidebar
+                st.sidebar.write(f"Unidade Selecionada: {unidade_filtrada}")
 
-                return ugs_mesma_unidade['UG'].tolist()
+                # Retornar a unidade filtrada
+                return unidade_filtrada
 
             except IndexError:
                 st.sidebar.error("UG ou SIGLA não encontrada. Tente novamente.")
-                return []
+                return None
         else:
             st.sidebar.warning("Selecione uma UG ou SIGLA para filtrar.")
-            return []
+            return None
+
 
     # ========= FILTROS DE CONTRATOS =========
     elif dashboard_name == 'Contratos':
