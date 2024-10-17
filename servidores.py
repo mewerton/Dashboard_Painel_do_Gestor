@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import locale
-from sidebar import load_sidebar_servidores
+from sidebar import load_sidebar  # Agora você usa a função centralizada do sidebar
 from data_loader import load_servidores_data
 
 # Configurar o locale para português do Brasil
@@ -18,7 +18,7 @@ def run_dashboard():
         return
 
     # Carregar o sidebar para "Servidores"
-    selected_ugs = load_sidebar_servidores()
+    selected_ugs = load_sidebar(df, "Servidores")
 
     # Exibir as métricas
     st.title('Dashboard de Servidores')
