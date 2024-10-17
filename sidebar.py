@@ -9,32 +9,33 @@ def load_sidebar(df, dashboard_name):
         # Carregar o CSV contendo UG, descrição, sigla e Unidade
         df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
 
-        # Mapeamento UG -> Descrição, SIGLA e Unidade
-        ugs_interesse = df_ug_info['UG'].tolist()
-        siglas_ugs_interesse = df_ug_info['SIGLA_UG'].tolist()
-        unidades_ugs_interesse = df_ug_info['Unidade'].tolist()  # Alterado para 'Unidade'
+        # Mapeamento UG -> Descrição e Sigla
+        ugs_interesse_servidores = df_ug_info['UG'].tolist()
+        siglas_ugs_interesse_servidores = df_ug_info['SIGLA_UG'].tolist()
 
         # Combinar as opções de UG e SIGLA para exibição clara
         options_combined_servidores = [
-            f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse, siglas_ugs_interesse)
+            f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse_servidores, siglas_ugs_interesse_servidores)
         ]
 
+        # Definir uma UG padrão
+        ugs_default_servidores = [410512]
+
         # Filtro para seleção de UG ou Sigla
-        selected_ug_sigla_servidores = st.sidebar.text_input(
-            'Digite a UG ou a SIGLA de interesse:'
+        selected_ug_sigla_servidores = st.sidebar.multiselect(
+            'Selecione a UG ou a SIGLA de interesse:',
+            options=options_combined_servidores,
+            default=[f"{ug} - {siglas_ugs_interesse_servidores[ugs_interesse_servidores.index(ug)]}" for ug in ugs_default_servidores]
         )
 
-        # Verificar se a UG ou SIGLA existe no dataset
+        # Separar as UGs selecionadas
+        selected_ugs_servidores = [int(option.split(" - ")[0]) for option in selected_ug_sigla_servidores]
+
+        # Verificar se algo foi selecionado
         if selected_ug_sigla_servidores:
             try:
-                # Tentar encontrar a UG digitada
-                if selected_ug_sigla_servidores.isdigit():
-                    selected_ug = int(selected_ug_sigla_servidores)
-                    unidade_filtrada = df_ug_info.loc[df_ug_info['UG'] == selected_ug, 'Unidade'].values[0]
-                else:
-                    # Caso tenha sido digitada uma SIGLA
-                    selected_sigla = selected_ug_sigla_servidores.upper()
-                    unidade_filtrada = df_ug_info.loc[df_ug_info['SIGLA_UG'] == selected_sigla, 'Unidade'].values[0]
+                # Obter a unidade associada à primeira UG selecionada
+                unidade_filtrada = df_ug_info.loc[df_ug_info['UG'] == selected_ugs_servidores[0], 'Unidade'].values[0]
 
                 # Filtrar todas as UGs que pertencem à mesma Unidade
                 ugs_mesma_unidade = df_ug_info[df_ug_info['Unidade'] == unidade_filtrada]
@@ -46,7 +47,7 @@ def load_sidebar(df, dashboard_name):
                 st.sidebar.error("UG ou SIGLA não encontrada. Tente novamente.")
                 return []
         else:
-            st.sidebar.warning("Digite uma UG ou SIGLA para filtrar.")
+            st.sidebar.warning("Selecione uma UG ou SIGLA para filtrar.")
             return []
 
     # ========= FILTROS DE CONTRATOS =========
