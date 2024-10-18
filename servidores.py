@@ -103,6 +103,7 @@ import plotly.express as px
 import locale
 from sidebar import load_sidebar  # Agora você usa a função centralizada do sidebar
 from data_loader import load_servidores_data
+from chatbot import render_chatbot  # Importar a função do chatbot
 
 # Configurar o locale para português do Brasil
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -127,6 +128,9 @@ def run_dashboard():
 
     # Carregar o sidebar para "Servidores" e obter a Unidade
     selected_unidade = load_sidebar(df, "Servidores")
+
+     # Chame o chatbot para renderizar no sidebar
+    render_chatbot()
 
     if selected_unidade is None:
         st.warning("Nenhuma Unidade selecionada. Exibindo todos os dados disponíveis.")

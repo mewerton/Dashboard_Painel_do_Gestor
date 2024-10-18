@@ -4,6 +4,7 @@ import plotly.express as px
 import locale
 from sidebar import load_sidebar
 from data_loader import load_data
+from chatbot import render_chatbot  # Importar a função do chatbot
 
 # Configurar o locale para português do Brasil
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -28,6 +29,9 @@ def run_dashboard():
    
     # Carregar o sidebar
     selected_ugs_despesas, selected_ano, selected_mes = load_sidebar(df, "despesas_ug")
+
+    # Chame o chatbot para renderizar no sidebar
+    render_chatbot()
 
     if df is not None:
         # Filtrar dados apenas para o Poder Executivo

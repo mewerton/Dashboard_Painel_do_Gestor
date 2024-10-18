@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from chatbot import render_chatbot
 
 def load_sidebar(df, dashboard_name):
 
@@ -153,6 +154,10 @@ def load_sidebar(df, dashboard_name):
         )
 
         return selected_ugs, selected_ano, selected_mes
+    
+
+    # Chamada para renderizar o chatbot abaixo de todos os filtros
+    render_chatbot()
 
 def navigate_pages():
     page = st.sidebar.radio(
