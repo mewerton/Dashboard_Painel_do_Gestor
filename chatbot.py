@@ -23,7 +23,7 @@ def render_chatbot():
         st.session_state.historico = []
 
     # Adicionando o chatbot no sidebar com um botão de envio personalizado
-    st.sidebar.subheader("IA Carly")
+    st.sidebar.subheader("Carly - Inteligência Artificial da CGE")
 
     # Colocando o input e o botão em uma única linha, sem o label acima do input
     input_col, button_col = st.sidebar.columns([5, 1])  # Ajuste as proporções das colunas
