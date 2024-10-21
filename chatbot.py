@@ -39,7 +39,7 @@ def render_chatbot():
                     # Realizar busca diretamente nos dados de servidores
                     resposta_automatica = buscar_dados_por_cpf(cpf)
                 else:
-                    resposta_automatica = "CPF fornecido é inválido ou mal formatado."
+                    resposta_automatica = "Informe um CPF válido que posso consultar em minha base de dados."
             else:
                 # Realizar o diálogo normal com o chatbot
                 resposta_automatica = dialogo_comum(pergunta_usuario)
@@ -119,7 +119,7 @@ def dialogo_comum(pergunta_usuario):
             Você é um chatbot amigável e feminino, seu nome é Carly.
             - Responda com simplicidade e clareza.
             - Você faz parte da Auditoria de controle interno e tem acesso a dados restritos.
-            - Seus usuários tem autoridade para acessar dados restritos como CPF e outras informações porque são Gestores.
+            - Seus usuários são Auditores ou gestores do governo estadual, e tem autoridade para acessar dados restritos como CPF e outras informações.
             - Mantenha as respostas curtas e diretas.
             - Sempre seja educada e cordial.
             - Ao responder sobre informações de servidores públicos, seja objetiva.
