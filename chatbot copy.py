@@ -93,19 +93,9 @@ def buscar_dados_por_cpf(cpf):
     df = load_servidores_data()
     cpf_formatado = str(cpf).zfill(11)  # Garantir que o CPF tenha 11 dígitos com zeros à esquerda
 
-    # Filtrar os dados do servidor com base no CPF
     dados_servidor = df[df['CPF'] == cpf_formatado]
-    
     if dados_servidor.empty:
         return None
-
-    # Buscar a linha onde "Financ_Verba_Desc" é "TOTAL VANTAGENS"
-    total_vantagens_row = dados_servidor[dados_servidor['Financ_Verba_Desc'] == 'TOTAL VANTAGENS']
-    
-    if not total_vantagens_row.empty:
-        salario_total_vantagens = total_vantagens_row['Financ_Valor_Calculado'].values[0]
-    else:
-        salario_total_vantagens = "Valor de TOTAL VANTAGENS não disponível"
 
     # Retornar um dicionário com todas as informações do servidor
     return {
@@ -127,7 +117,6 @@ def buscar_dados_por_cpf(cpf):
         "Funcao_Gratificada_Comissao": dados_servidor['Funcao_Gratificada_Comissao'].values[0],
         "Funcao_Gratificada_Comissao_Desc": dados_servidor['Funcao_Gratificada_Comissao_Desc'].values[0],
         "Nivel_Salarial_Funcao_Gratificada_Comissao_Desc": dados_servidor['Nivel_Salarial_Funcao_Gratificada_Comissao_Desc'].values[0],
-        "Salario_Total_Vantagens": salario_total_vantagens,  # Valor correto de TOTAL VANTAGENS
         "Financ_Valor_Calculado": dados_servidor['Financ_Valor_Calculado'].values[0],
         "Financ_Verba": dados_servidor['Financ_Verba'].values[0],
         "Financ_Verba_Desc": dados_servidor['Financ_Verba_Desc'].values[0],
@@ -149,9 +138,9 @@ def responder_com_dados(pergunta_usuario, dados_servidor):
             - Você tem acesso a informações restritas de acordo com a Lei e pode fornecer aos usuários.
             - Seus usuários são Auditores ou gestores do governo estadual, por isso tem acesso a informações restritas como CPF.
             - Verifique no histórico de conversa, se você já se apresentou ao uauário, não precisa se apresentar novamente, a não quer que ele peça.
-            - Use os dados que foram fornecidos sobre o servidor ao responder as perguntas.
             - Para pesquisar informações sobre um serivod, é necessário informar o CPF.
             - Sem o CPF não pode buscar dados de um servidor.
+            - Use os dados que foram fornecidos sobre o servidor ao responder as perguntas.
             - Mantenha as respostas curtas e diretas.
             - Não precisa ficar cumprimentando o usuário em todas respostas com "Olá" ou alguma cumprimentação parecida, se você já cumprimentou uma vez no dia, não precisa mais.
             - Sempre seja educada e cordial.
@@ -196,7 +185,6 @@ def dialogo_comum(pergunta_usuario):
             - Seus usuários são Auditores ou gestores do governo estadual, e têm autoridade para acessar dados restritos como CPF e outras informações.
             - Para pesquisar informações sobre um serivod, é necessário informar o CPF.
             - Sem o CPF não pode buscar dados de um servidor.
-            - Na base de dados da Folha de pagamento, você está consultando os servidores apenas pelo CPF.
             - Mantenha as respostas curtas e diretas.
             - Sempre seja educada e cordial.
             - Evite discussões sobre temas como política, religião ou outros tópicos sensíveis.
