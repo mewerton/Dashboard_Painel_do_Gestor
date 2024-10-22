@@ -122,18 +122,41 @@ def load_contracts_data():
 
     return df_aditivos, df_contratos
 
-# Função para carregar o arquivo de servidores (folha de pagamento)
+# Função para carregar o arquivo de servidores (folha de pagamento) do Google Drive
 @st.cache_resource
 def load_servidores_data():
-    file_path = './database/dados_folha_09_2024.parquet'
+    service = get_drive_service()
     
-    if not os.path.exists(file_path):
-        st.error(f'Arquivo {file_path} não encontrado.')
+    # Carregar o ID da pasta do arquivo de folha a partir do .env
+    FOLHA_FOLDER_ID = os.getenv('FOLHA_FOLDER_ID')
+
+    if not FOLHA_FOLDER_ID:
+        st.error('ID da pasta da folha de pagamento não encontrado. Verifique o arquivo .env.')
         return pd.DataFrame()
-    
-    # Carregar o arquivo .parquet como DataFrame
-    df_servidores = pd.read_parquet(file_path)
-    
+
+    # pylint: disable=no-member
+    # Listar os arquivos na pasta "folha de pagamento"
+    folha_files = service.files().list(
+        q=f"'{FOLHA_FOLDER_ID}' in parents",
+        fields="files(id, name)",
+        orderBy='createdTime desc'
+    ).execute().get('files', [])
+
+    if not folha_files:
+        st.error('Nenhum arquivo de folha de pagamento encontrado na pasta "folha_1_mes" do Google Drive.')
+        return pd.DataFrame()
+
+    # Pegar o primeiro arquivo Parquet encontrado
+    folha_file = next((file for file in folha_files if file['name'].endswith('.parquet')), None)
+
+    if not folha_file:
+        st.error('Nenhum arquivo .parquet encontrado na pasta "folha de pagamento".')
+        return pd.DataFrame()
+
+    # Baixar o arquivo e carregar como DataFrame
+    folha_content = download_file_from_drive(service, folha_file['id'])
+    df_servidores = pq.read_table(folha_content).to_pandas()
+
     return df_servidores
 
 # Função principal para carregar os dados de despesas e diárias
