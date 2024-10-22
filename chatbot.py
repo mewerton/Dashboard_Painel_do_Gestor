@@ -42,7 +42,7 @@ def render_chatbot():
                     # Realizar busca nos dados e armazenar os dados em sessão
                     st.session_state.dados_servidor = buscar_dados_por_cpf(cpf)
                     if st.session_state.dados_servidor:
-                        nome = st.session_state.dados_servidor['Nome_Funcionario']
+                        nome = st.session_state.dados_servidor['Nome_Funcionario'][0]
                         resposta_automatica = f"Identifiquei a pessoa com CPF {cpf}: {nome}. O que você deseja saber sobre ele?"
                     else:
                         resposta_automatica = f"Não encontrei informações para o CPF: {cpf}. Tente novamente com um CPF válido."
@@ -93,48 +93,39 @@ def buscar_dados_por_cpf(cpf):
     df = load_servidores_data()
     cpf_formatado = str(cpf).zfill(11)  # Garantir que o CPF tenha 11 dígitos com zeros à esquerda
 
-    # Filtrar os dados do servidor com base no CPF
     dados_servidor = df[df['CPF'] == cpf_formatado]
-    
     if dados_servidor.empty:
         return None
 
-    # Buscar a linha onde "Financ_Verba_Desc" é "TOTAL VANTAGENS"
-    total_vantagens_row = dados_servidor[dados_servidor['Financ_Verba_Desc'] == 'TOTAL VANTAGENS']
-    
-    if not total_vantagens_row.empty:
-        salario_total_vantagens = total_vantagens_row['Financ_Valor_Calculado'].values[0]
-    else:
-        salario_total_vantagens = "Valor de TOTAL VANTAGENS não disponível"
-
-    # Retornar um dicionário com todas as informações do servidor
-    return {
-        "Unidade": dados_servidor['Unidade'].values[0],
-        "Unidade_Fil_Desc": dados_servidor['Unidade_Fil_Desc'].values[0],
-        "Matricula": dados_servidor['Matricula'].values[0],
-        "Nome_Funcionario": dados_servidor['Nome_Funcionario'].values[0],
-        "CPF": dados_servidor['CPF'].values[0],
-        "Data_Nascimento": dados_servidor['Data_Nascimento'].values[0],
-        "Sexo_Desc": dados_servidor['Sexo_Desc'].values[0],
-        "Grau_Instrucao_Desc": dados_servidor['Grau_Instrucao_Desc'].values[0],
-        "Unidade_Emp_Desc": dados_servidor['Unidade_Emp_Desc'].values[0],
-        "Funcao_Efetiva_Desc": dados_servidor['Funcao_Efetiva_Desc'].values[0],
-        "Setor_Desc": dados_servidor['Setor_Desc'].values[0],
-        "Carga_Horaria": dados_servidor['Carga_Horaria'].values[0],
-        "Tipo_Folha_Desc": dados_servidor['Tipo_Folha_Desc'].values[0],
-        "Vinculo": dados_servidor['Vinculo'].values[0],
-        "Vinculo_Desc": dados_servidor['Vinculo_Desc'].values[0],
-        "Funcao_Gratificada_Comissao": dados_servidor['Funcao_Gratificada_Comissao'].values[0],
-        "Funcao_Gratificada_Comissao_Desc": dados_servidor['Funcao_Gratificada_Comissao_Desc'].values[0],
-        "Nivel_Salarial_Funcao_Gratificada_Comissao_Desc": dados_servidor['Nivel_Salarial_Funcao_Gratificada_Comissao_Desc'].values[0],
-        "Salario_Total_Vantagens": salario_total_vantagens,  # Valor correto de TOTAL VANTAGENS
-        "Financ_Valor_Calculado": dados_servidor['Financ_Valor_Calculado'].values[0],
-        "Financ_Verba": dados_servidor['Financ_Verba'].values[0],
-        "Financ_Verba_Desc": dados_servidor['Financ_Verba_Desc'].values[0],
-        "Ferias_Periodo_Aquisitivo_Inicial": dados_servidor['Ferias_Periodo_Aquisitivo_Inicial'].values[0],
-        "Ferias_Periodo_Aquisitivo_Final": dados_servidor['Ferias_Periodo_Aquisitivo_Final'].values[0],
-        "Ferias_Data_Ultima_Gozada": dados_servidor['Ferias_Data_Ultima_Gozada'].values[0]
+    # Aqui vamos construir um dicionário para capturar todas as linhas para as colunas relevantes
+    dados_servidor_completo = {
+        "Unidade": list(dados_servidor['Unidade']),
+        "Unidade_Fil_Desc": list(dados_servidor['Unidade_Fil_Desc']),
+        "Matricula": list(dados_servidor['Matricula']),
+        "Nome_Funcionario": list(dados_servidor['Nome_Funcionario']),
+        "CPF": list(dados_servidor['CPF']),
+        "Data_Nascimento": list(dados_servidor['Data_Nascimento']),
+        "Sexo_Desc": list(dados_servidor['Sexo_Desc']),
+        "Grau_Instrucao_Desc": list(dados_servidor['Grau_Instrucao_Desc']),
+        "Unidade_Emp_Desc": list(dados_servidor['Unidade_Emp_Desc']),
+        "Funcao_Efetiva_Desc": list(dados_servidor['Funcao_Efetiva_Desc']),
+        "Setor_Desc": list(dados_servidor['Setor_Desc']),
+        "Carga_Horaria": list(dados_servidor['Carga_Horaria']),
+        "Tipo_Folha_Desc": list(dados_servidor['Tipo_Folha_Desc']),
+        "Vinculo": list(dados_servidor['Vinculo']),
+        "Vinculo_Desc": list(dados_servidor['Vinculo_Desc']),
+        "Funcao_Gratificada_Comissao": list(dados_servidor['Funcao_Gratificada_Comissao']),
+        "Funcao_Gratificada_Comissao_Desc": list(dados_servidor['Funcao_Gratificada_Comissao_Desc']),
+        "Nivel_Salarial_Funcao_Gratificada_Comissao_Desc": list(dados_servidor['Nivel_Salarial_Funcao_Gratificada_Comissao_Desc']),
+        "Financ_Valor_Calculado": list(dados_servidor['Financ_Valor_Calculado']),
+        "Financ_Verba": list(dados_servidor['Financ_Verba']),
+        "Financ_Verba_Desc": list(dados_servidor['Financ_Verba_Desc']),
+        "Ferias_Periodo_Aquisitivo_Inicial": list(dados_servidor['Ferias_Periodo_Aquisitivo_Inicial']),
+        "Ferias_Periodo_Aquisitivo_Final": list(dados_servidor['Ferias_Periodo_Aquisitivo_Final']),
+        "Ferias_Data_Ultima_Gozada": list(dados_servidor['Ferias_Data_Ultima_Gozada'])
     }
+
+    return dados_servidor_completo
 
 # Função para integrar os dados ao modelo LLM e gerar respostas naturais
 def responder_com_dados(pergunta_usuario, dados_servidor):
@@ -148,25 +139,31 @@ def responder_com_dados(pergunta_usuario, dados_servidor):
             - Responda com simplicidade e clareza.
             - Você tem acesso a informações restritas de acordo com a Lei e pode fornecer aos usuários.
             - Seus usuários são Auditores ou gestores do governo estadual, por isso tem acesso a informações restritas como CPF.
-            - Verifique no histórico de conversa, se você já se apresentou ao uauário, não precisa se apresentar novamente, a não quer que ele peça.
+            - Antes de responder, sempre verifique no histórico de conversa, se você já se apresentou ao usuário, não precisa se apresentar novamente.
+            - Não precisa ficar cumprimentando o usuário em todas respostas com "Olá" ou alguma cumprimentação parecida, se você já cumprimentou uma vez no dia, não precisa mais.
+            - Não responda a mensagem com "Olá" toda vez, seja objetivo nas respostas.
+            - Sempre seja educada e cordial.
             - Use os dados que foram fornecidos sobre o servidor ao responder as perguntas.
-            - Para pesquisar informações sobre um serivod, é necessário informar o CPF.
+            - Para pesquisar informações sobre um servidor, é necessário informar o CPF.
             - Sem o CPF não pode buscar dados de um servidor.
             - Mantenha as respostas curtas e diretas.
-            - Não precisa ficar cumprimentando o usuário em todas respostas com "Olá" ou alguma cumprimentação parecida, se você já cumprimentou uma vez no dia, não precisa mais.
-            - Sempre seja educada e cordial.
             - Se não souber a resposta para uma pergunta, peça mais informações ou indique que a informação não está disponível.
         """
 
         # Preparar os dados do servidor para serem passados ao LLM
         dados_servidor_str = "\n".join([f"{key}: {value}" for key, value in dados_servidor.items()])
-        prompt_completo = f"Dados do servidor:\n{dados_servidor_str}\n\nUsuário: {pergunta_usuario}"
 
+        # Concatenar o histórico completo de conversas
+        historico_completo = "\n".join(st.session_state.historico)
+        prompt_completo = f"Dados do servidor:\n{dados_servidor_str}\n\nHistórico de conversa:\n{historico_completo}\n\nUsuário: {pergunta_usuario}"
+
+        # Criar o template de mensagens
         template = ChatPromptTemplate.from_messages([
             ('system', regras),
             ('user', prompt_completo)
         ])
 
+        # Gerar a resposta usando o modelo da LLM
         chain = template | chat
         resposta = chain.invoke({'input': pergunta_usuario})
         return resposta.content if resposta.content.strip() else "Desculpe, não tenho essa informação no momento."
@@ -189,18 +186,19 @@ def dialogo_comum(pergunta_usuario):
 
         # Criar regras básicas para o chatbot
         regras = """
-            Você é um chatbot amigável e feminino, seu nome é Carly.
-            - Verifique no histórico de conversa, se você já se apresentou ao uauário, não precisa se apresentar novamente, a não quer que ele peça.
+            - Você é um chatbot amigável e feminino, seu nome é Carly.
             - Responda com simplicidade e clareza.
-            - Você faz parte da Auditoria de controle interno e tem acesso a dados restritos.
-            - Seus usuários são Auditores ou gestores do governo estadual, e têm autoridade para acessar dados restritos como CPF e outras informações.
-            - Para pesquisar informações sobre um serivod, é necessário informar o CPF.
+            - Você tem acesso a informações restritas de acordo com a Lei e pode fornecer aos usuários.
+            - Seus usuários são Auditores ou gestores do governo estadual, por isso tem acesso a informações restritas como CPF.
+            - Antes de responder, sempre verifique no histórico de conversa, se você já se apresentou ao usuário, não precisa se apresentar novamente.
+            - Não precisa ficar cumprimentando o usuário em todas respostas com "Olá" ou alguma cumprimentação parecida, se você já cumprimentou uma vez no dia, não precisa mais.
+            - Não responda a mensagem com "Olá" toda vez, seja objetivo nas respostas.
+            - Sempre seja educada.
+            - Use os dados que foram fornecidos sobre o servidor ao responder as perguntas.
+            - Para pesquisar informações sobre um servidor, é necessário informar o CPF.
             - Sem o CPF não pode buscar dados de um servidor.
-            - Na base de dados da Folha de pagamento, você está consultando os servidores apenas pelo CPF.
             - Mantenha as respostas curtas e diretas.
-            - Sempre seja educada e cordial.
-            - Evite discussões sobre temas como política, religião ou outros tópicos sensíveis.
-            - Responda a perguntas de maneira clara, sem usar linguagem técnica excessiva.
+            - Se não souber a resposta para uma pergunta, peça mais informações ou indique que a informação não está disponível.
         """
         historico_conversa = "\n".join(st.session_state.historico)
         template = ChatPromptTemplate.from_messages([
