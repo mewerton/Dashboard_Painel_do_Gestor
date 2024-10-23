@@ -3,6 +3,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import streamlit as st
 import hashlib
+import time
 import despesas_ug
 import diarias
 import contratos
@@ -42,18 +43,30 @@ users = {
 
 def login():
     st.markdown("<h1 style='text-align: center;'>Login</h1>", unsafe_allow_html=True)
+    
+    # Criar colunas para centralizar o formulário de login
     col1, col2, col3 = st.columns([2, 2, 2])
+    
     with col2:
+        # Inputs de login e senha
         username = st.text_input("Usuário")
         password = st.text_input("Senha", type='password')
-        if st.button("Login"):
-            if username in users and check_hashes(password, users[username]):
-                st.session_state['authenticated'] = True
-                st.session_state['data'] = load_data()  # Carregar o dataset após login
-                st.success("Login bem-sucedido!")
-            else:
-                st.error("Usuário ou senha incorretos.")
+    
+        # Botão de login
+        if st.button("Login", on_click=login_action, args=(username, password)):
+            pass  # Ação de login é tratada pela função `login_action`
 
+def login_action(username, password):
+    if username in users and check_hashes(password, users[username]):
+        st.session_state['authenticated'] = True
+        placeholder = st.empty()  # Placeholder para a mensagem de sucesso
+        placeholder.success("Login bem-sucedido!")
+        time.sleep(5)  # Espera por 3 segundos
+        placeholder.empty()  # Limpa a mensagem de sucesso
+    else:
+        st.error("Usuário ou senha incorretos.")
+
+# Verifica se o usuário já está autenticado
 if 'authenticated' not in st.session_state:
     st.session_state['authenticated'] = False
 
