@@ -350,20 +350,21 @@ def run_dashboard():
     mostrar_tabela = False
 
 # Agrupar os dados de favorecidos
-    df_favorecidos = df_diarias.groupby(['NOME_FAVORECIDO', 'DESCRICAO_NATUREZA', 'COD_PROCESSO', 'NOTA_EMPENHO', 'OBSERVACAO_NE', 'MES', 'ANO']).agg({'VALOR_PAGO': 'sum'}).reset_index()
+    df_favorecidos = df_diarias.groupby(['CODIGO_FAVORECIDO','NOME_FAVORECIDO', 'DESCRICAO_NATUREZA', 'COD_PROCESSO', 'NOTA_EMPENHO', 'OBSERVACAO_NE', 'MES', 'ANO']).agg({'VALOR_PAGO': 'sum'}).reset_index()
 
 # Criar a coluna 'Período' com o formato 'MM/AAAA'
     df_favorecidos['Período'] = df_favorecidos['ANO'].astype(str) + '/' +  df_favorecidos['MES'].astype(str).str.zfill(2) 
 
 # Renomear colunas e reordenar
     df_favorecidos = df_favorecidos.rename(columns={
+        'CODIGO_FAVORECIDO':'CPF do Favorecido',
         'NOME_FAVORECIDO': 'Favorecido',
         'DESCRICAO_NATUREZA': 'Natureza',
         'VALOR_PAGO': 'Valor Pago',
         'COD_PROCESSO': 'Código do Processo',
         'NOTA_EMPENHO': 'Nota de Empenho',
         'OBSERVACAO_NE': 'Observação'
-    })[['Favorecido', 'Natureza', 'Valor Pago', 'Período', 'Código do Processo', 'Nota de Empenho', 'Observação']]
+    })[['CPF do Favorecido','Favorecido', 'Natureza', 'Valor Pago', 'Período', 'Código do Processo', 'Nota de Empenho', 'Observação']]
 
 # Se o usuário digitou algo no campo de pesquisa, mostrar a tabela com o filtro
     if keyword:
