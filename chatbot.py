@@ -168,7 +168,17 @@ def responder_com_dados(pergunta_usuario, dados_servidor):
         resposta = chain.invoke({'input': pergunta_usuario})
         return resposta.content if resposta.content.strip() else "Desculpe, não tenho essa informação no momento."
     except Exception as e:
-        return f"Erro ao processar sua pergunta: {e}"
+        error_message = str(e)
+
+        # Verificar o código de erro e retornar a mensagem apropriada
+        if '500' in error_message:
+            return "API da IA - 500 Erro Interno do Servidor: Ocorreu um erro genérico no servidor. Tente a solicitação novamente mais tarde ou entre em contato com o suporte se o problema persistir."
+        elif '502' in error_message:
+            return "API da IA - 502 Bad Gateway: O servidor recebeu uma resposta inválida de um servidor upstream. Este pode ser um problema temporário; tentar novamente a solicitação pode resolvê-lo."
+        elif '503' in error_message:
+            return "API da IA - 503 Serviço Indisponível: O servidor não está pronto para lidar com a solicitação, geralmente devido à manutenção ou sobrecarga. Aguarde antes de tentar a solicitação novamente."
+        else:
+            return f"Erro ao processar sua pergunta: {e}"
 
 # Função para extrair o CPF da mensagem do usuário
 def extract_cpf_from_message(message):
