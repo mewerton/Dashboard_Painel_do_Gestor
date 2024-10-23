@@ -238,6 +238,9 @@ def run_dashboard():
     st.subheader('Despesas - Detalhado')
     df_detalhado = df_filtered[['DESCRICAO_NATUREZA', 'NOME_FAVORECIDO', 'TIPO_LICITACAO', 'UG_EMITENTE', 'NOTA_EMPENHO', 'COD_PROCESSO', 'NOME_CONTRATO', 'OBSERVACAO_NE', 'VALOR_PAGO']]
 
+    # Ajustar o limite de células permitidas para renderização
+    pd.set_option("styler.render.max_elements", 999999)  # Altere este número para o total de células do seu dataframe
+
     # Campo de entrada para a palavra-chave de pesquisa
     keyword = st.text_input('Digite uma palavra-chave para filtrar a tabela:')
 
