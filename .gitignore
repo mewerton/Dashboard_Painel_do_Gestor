@@ -10,7 +10,7 @@ connection
 # Ignorar o arquivos .py
 test_tensorflow.py
 test.py
-app2.py
+app copy.py
 app3.py
 app4.py
 app5.py

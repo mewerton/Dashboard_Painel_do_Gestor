@@ -33,6 +33,42 @@ def get_drive_service():
     
     return build('drive', 'v3', credentials=credentials)
 
+# ========== Login CSV Data Loader ==========
+
+# Função para listar arquivos .csv na pasta de login no Google Drive
+def list_login_files(service):
+    LOGIN_FOLDER_ID = os.getenv('LOGIN_FOLDER_ID')  # Adicionar o ID da pasta de login no .env
+
+    login_files = service.files().list(
+        q=f"'{LOGIN_FOLDER_ID}' in parents and name contains '.csv'",
+        fields="files(id, name)",
+        orderBy='createdTime desc'
+    ).execute().get('files', [])
+
+    if not login_files:
+        st.error('Nenhum arquivo de login encontrado na pasta do Google Drive.')
+        return None
+
+    return login_files[0]  # Pegar o arquivo mais recente
+
+# Função para carregar o CSV de login do Google Drive (sem cache)
+def load_login_data():
+    service = get_drive_service()
+    
+    login_file = list_login_files(service)
+    if not login_file:
+        return pd.DataFrame()
+
+    # Baixar o arquivo CSV de login
+    login_content = download_file_from_drive(service, login_file['id'])
+    
+    # Carregar o CSV como DataFrame
+    df_login = pd.read_csv(login_content)
+    
+    return df_login
+
+# ========== Fim do Login CSV Data Loader ==========
+
 
 # Função para listar arquivos .parquet na pasta de despesas e diárias no Google Drive
 def list_parquet_files(service):
