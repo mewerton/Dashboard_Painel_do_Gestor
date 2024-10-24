@@ -4,9 +4,6 @@
 # Ignorar a pasta backup
 backup/
 
-# Ignorar a pasta database
-database/
-
 # Ignorar a pasta da credencial
 connection
 
@@ -21,9 +18,7 @@ validation.py
 despesas.py
 contrato.py
 despesas_ug2.py
-adiantamentos.py
-orcamento.py
-combustivel.py
+
 
 # Ignorar a pasta venv (ambiente virtual Python)
 venv/
