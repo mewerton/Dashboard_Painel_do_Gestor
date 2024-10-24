@@ -8,8 +8,14 @@ from data_loader import load_contracts_data
 from chatbot import render_chatbot  # Importar a função do chatbot
 
 # Configurar o locale para português do Brasil
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+#locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
+# Tente definir o locale para pt_BR. Se falhar, use o locale padrão do sistema
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except locale.Error:
+    locale.setlocale(locale.LC_ALL, '')  # Fallback para o locale padrão do sistema
+    
 def run_dashboard():
     # Carregar os datasets de contratos e aditivos usando o data_loader
     df_aditivos, df_contratos = load_contracts_data()
