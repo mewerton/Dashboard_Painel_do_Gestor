@@ -6,12 +6,13 @@ from googleapiclient.discovery import build
 from io import BytesIO
 import os
 from dotenv import load_dotenv
+import json
 
 # Carregar as variáveis do arquivo .env
 load_dotenv()
 
 # Caminho para o arquivo de credenciais da conta de serviço
-CREDENTIALS_FILE = './connection/painelgestor-1f0078538d0c.json'
+CREDENTIALS_FILE = json.loads(os.getenv('CREDENTIALS_FILE'))
 
 # ID da pasta do Google Drive onde estão os dados "dataset_despesas_detalhado"
 FOLDER_ID = os.getenv('FOLDER_ID')
@@ -21,11 +22,17 @@ CONTRATOS_FOLDER_ID = os.getenv('CONTRATOS_FOLDER_ID')
 
 # Função para autenticar e construir o serviço Google Drive API
 def get_drive_service():
-    credentials = service_account.Credentials.from_service_account_file(
-        CREDENTIALS_FILE,
+    # Carregar o JSON como um dicionário do .env
+    credentials_info = json.loads(os.getenv('CREDENTIALS_FILE'))
+    
+    # Usar from_service_account_info para passar o dicionário em vez de um arquivo
+    credentials = service_account.Credentials.from_service_account_info(
+        credentials_info,
         scopes=['https://www.googleapis.com/auth/drive']
     )
+    
     return build('drive', 'v3', credentials=credentials)
+
 
 # Função para listar arquivos .parquet na pasta de despesas e diárias no Google Drive
 def list_parquet_files(service):
