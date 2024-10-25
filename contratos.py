@@ -81,7 +81,8 @@ def run_dashboard():
     valor_total_contratos = df_contratos['VALOR_TOTAL'].sum()
 
     # Formatar valor total para moeda
-    valor_total_formatado = locale.currency(valor_total_contratos, grouping=True)
+    #valor_total_formatado = locale.currency(valor_total_contratos, grouping=True)
+    valor_total_formatado = f"R$ {valor_total_contratos:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
     # Adicionar métricas ao painel
     st.subheader('Métricas da Contratos')
@@ -156,7 +157,10 @@ def run_dashboard():
     df_contratos['UG'] = df_contratos['UG'].astype(int).astype(str)
     df_contratos['DATA_INICIO_VIGENCIA'] = pd.to_datetime(df_contratos['DATA_INICIO_VIGENCIA']).dt.strftime('%d/%m/%Y')
     df_contratos['DATA_FIM_VIGENCIA'] = pd.to_datetime(df_contratos['DATA_FIM_VIGENCIA']).dt.strftime('%d/%m/%Y')
-    df_contratos['VALOR_TOTAL'] = df_contratos['VALOR_TOTAL'].apply(lambda x: locale.currency(x, grouping=True))
+    #df_contratos['VALOR_TOTAL'] = df_contratos['VALOR_TOTAL'].apply(lambda x: locale.currency(x, grouping=True))
+    df_contratos['VALOR_TOTAL'] = df_contratos['VALOR_TOTAL'].apply(
+        lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else 'R$ 0,00'
+    )
 
     # Exibir tabela de contratos
     st.subheader('Contratos da Unidade Gestora')
@@ -186,7 +190,11 @@ def run_dashboard():
 
         # Criar uma cópia para exibição e formatar valores como moeda
         df_aditivos_filtrados_exibir = df_aditivos_filtrados.copy()
-        df_aditivos_filtrados_exibir['VALOR_FORMATADO'] = df_aditivos_filtrados_exibir['VALOR'].apply(lambda x: locale.currency(x, grouping=True) if pd.notnull(x) else 'R$ 0,00')
+        #df_aditivos_filtrados_exibir['VALOR_FORMATADO'] = df_aditivos_filtrados_exibir['VALOR'].apply(lambda x: locale.currency(x, grouping=True) if pd.notnull(x) else 'R$ 0,00')
+        df_aditivos_filtrados_exibir['VALOR_FORMATADO'] = df_aditivos_filtrados_exibir['VALOR'].apply(
+            lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else 'R$ 0,00'
+        )
+
 
         st.subheader('Aditivos e Reajustes dos Contratos Exibidos')
 
@@ -197,7 +205,9 @@ def run_dashboard():
         valor_total_aditivos = df_aditivos_filtrados['VALOR'].sum()
 
         # Formatar o valor total como moeda
-        valor_total_formatado = locale.currency(valor_total_aditivos, grouping=True)
+        #valor_total_formatado = locale.currency(valor_total_aditivos, grouping=True)
+        valor_total_formatado = f"R$ {valor_total_aditivos:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
 
         # Exibir o valor total abaixo da tabela
         st.markdown(f"**Valor total dos Aditivos/Reajustes filtrados: {valor_total_formatado}**")

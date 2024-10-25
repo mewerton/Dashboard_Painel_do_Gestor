@@ -12,7 +12,21 @@ import json
 load_dotenv()
 
 # Caminho para o arquivo de credenciais da conta de serviço
-CREDENTIALS_FILE = json.loads(os.getenv('CREDENTIALS_FILE'))
+#CREDENTIALS_FILE = json.loads(os.getenv('CREDENTIALS_FILE'))
+
+# Construir o JSON de credenciais
+credentials_info = {
+    "type": os.getenv("CREDENTIALS_FILE_TYPE"),
+    "project_id": os.getenv("PROJECT_ID"),
+    "private_key_id": os.getenv("PRIVATE_KEY_ID"),
+    "private_key": os.getenv("PRIVATE_KEY").replace("\\n", "\n"),  # Corrigir o formato da chave
+    "client_email": os.getenv("CLIENT_EMAIL"),
+    "client_id": os.getenv("CLIENT_ID"),
+    "auth_uri": os.getenv("AUTH_URI"),
+    "token_uri": os.getenv("TOKEN_URI"),
+    "auth_provider_x509_cert_url": os.getenv("AUTH_PROVIDER_CERT_URL"),
+    "client_x509_cert_url": os.getenv("CLIENT_CERT_URL"),
+}
 
 # ID da pasta do Google Drive onde estão os dados "dataset_despesas_detalhado"
 FOLDER_ID = os.getenv('FOLDER_ID')
@@ -21,16 +35,24 @@ FOLDER_ID = os.getenv('FOLDER_ID')
 CONTRATOS_FOLDER_ID = os.getenv('CONTRATOS_FOLDER_ID')
 
 # Função para autenticar e construir o serviço Google Drive API
-def get_drive_service():
-    # Carregar o JSON como um dicionário do .env
-    credentials_info = json.loads(os.getenv('CREDENTIALS_FILE'))
+# def get_drive_service():
+#     # Carregar o JSON como um dicionário do .env
+#     credentials_info = json.loads(os.getenv('CREDENTIALS_FILE'))
     
-    # Usar from_service_account_info para passar o dicionário em vez de um arquivo
+#     # Usar from_service_account_info para passar o dicionário em vez de um arquivo
+#     credentials = service_account.Credentials.from_service_account_info(
+#         credentials_info,
+#         scopes=['https://www.googleapis.com/auth/drive']
+#     )
+    
+#     return build('drive', 'v3', credentials=credentials)
+
+# Função para autenticar e construir o serviço Google Drive API
+def get_drive_service():
     credentials = service_account.Credentials.from_service_account_info(
         credentials_info,
         scopes=['https://www.googleapis.com/auth/drive']
     )
-    
     return build('drive', 'v3', credentials=credentials)
 
 # ========== Login CSV Data Loader ==========

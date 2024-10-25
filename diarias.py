@@ -45,7 +45,9 @@ def run_dashboard():
     # Calcular as métricas
     quantidade_despesas = df_diarias[df_diarias['VALOR_PAGO'] > 0].shape[0]
     valor_total_diarias = df_diarias['VALOR_PAGO'].sum()
-    valor_total_formatado = locale.currency(valor_total_diarias, grouping=True)
+    #valor_total_formatado = locale.currency(valor_total_diarias, grouping=True)
+    valor_total_formatado = f"R$ {valor_total_diarias:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
 
     # Adicionar métricas ao painel
     selected_ug_description = "Descrição não encontrada"
@@ -113,18 +115,33 @@ def run_dashboard():
             st.session_state.mostrar_resumo_categoria = not st.session_state.mostrar_resumo_categoria
 
     # Mostrar as tabelas apenas se o estado da sessão correspondente for verdadeiro
+    # if st.session_state.mostrar_resumo_mensal:
+    #     with col7:
+    #         st.subheader('Resumo Mensal de Despesas com Diárias')
+    #         df_mensal['VALOR_EMPENHADO'] = df_mensal['VALOR_EMPENHADO'].apply(lambda x: locale.currency(x, grouping=True))
+    #         df_mensal['VALOR_PAGO'] = df_mensal['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+    #         st.dataframe(df_mensal)
+
+    # if st.session_state.mostrar_resumo_categoria:
+    #     with col8:
+    #         st.subheader('Resumo Detalhado por Categoria de Diária')
+    #         df_categoria['VALOR_EMPENHADO'] = df_categoria['VALOR_EMPENHADO'].apply(lambda x: locale.currency(x, grouping=True))
+    #         df_categoria['VALOR_PAGO'] = df_categoria['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+    #         st.dataframe(df_categoria)
+
+    # Mostrar as tabelas apenas se o estado da sessão correspondente for verdadeiro
     if st.session_state.mostrar_resumo_mensal:
         with col7:
             st.subheader('Resumo Mensal de Despesas com Diárias')
-            df_mensal['VALOR_EMPENHADO'] = df_mensal['VALOR_EMPENHADO'].apply(lambda x: locale.currency(x, grouping=True))
-            df_mensal['VALOR_PAGO'] = df_mensal['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+            df_mensal['VALOR_EMPENHADO'] = df_mensal['VALOR_EMPENHADO'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
+            df_mensal['VALOR_PAGO'] = df_mensal['VALOR_PAGO'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
             st.dataframe(df_mensal)
 
     if st.session_state.mostrar_resumo_categoria:
         with col8:
             st.subheader('Resumo Detalhado por Categoria de Diária')
-            df_categoria['VALOR_EMPENHADO'] = df_categoria['VALOR_EMPENHADO'].apply(lambda x: locale.currency(x, grouping=True))
-            df_categoria['VALOR_PAGO'] = df_categoria['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+            df_categoria['VALOR_EMPENHADO'] = df_categoria['VALOR_EMPENHADO'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
+            df_categoria['VALOR_PAGO'] = df_categoria['VALOR_PAGO'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
             st.dataframe(df_categoria)
             
     
@@ -138,7 +155,9 @@ def run_dashboard():
     df_total_por_favorecido = df_total_por_favorecido.sort_values(by='VALOR_PAGO', ascending=True)
 
     # Formatar os valores como moeda brasileira
-    df_total_por_favorecido['VALOR_PAGO_FORMATADO'] = df_total_por_favorecido['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+    #df_total_por_favorecido['VALOR_PAGO_FORMATADO'] = df_total_por_favorecido['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+    # Formatar os valores como moeda brasileira
+    df_total_por_favorecido['VALOR_PAGO_FORMATADO'] = df_total_por_favorecido['VALOR_PAGO'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
 
     # Criar o gráfico de barras horizontais
     fig_favorecido = px.bar(
@@ -314,20 +333,37 @@ def run_dashboard():
     df_6_ou_mais_meses = pd.DataFrame(servidores_6_ou_mais_meses_detalhes)
 
 # Formatar o valor total como moeda, se a coluna existir
+    # if not df_3_meses.empty:
+    #     df_3_meses['Valor Total Pago'] = df_3_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
+    # else:
+    #     df_3_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
+
+    # if not df_4_5_meses.empty:
+    #     df_4_5_meses['Valor Total Pago'] = df_4_5_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
+    # else:
+    #     df_4_5_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
+
+    # if not df_6_ou_mais_meses.empty:
+    #     df_6_ou_mais_meses['Valor Total Pago'] = df_6_ou_mais_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
+    # else:
+    #     df_6_ou_mais_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
+
+    # Formatar o valor total como moeda, se a coluna existir
     if not df_3_meses.empty:
-        df_3_meses['Valor Total Pago'] = df_3_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
+        df_3_meses['Valor Total Pago'] = df_3_meses['Valor Total Pago'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
     else:
         df_3_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
 
     if not df_4_5_meses.empty:
-        df_4_5_meses['Valor Total Pago'] = df_4_5_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
+        df_4_5_meses['Valor Total Pago'] = df_4_5_meses['Valor Total Pago'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
     else:
         df_4_5_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
 
     if not df_6_ou_mais_meses.empty:
-        df_6_ou_mais_meses['Valor Total Pago'] = df_6_ou_mais_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
+        df_6_ou_mais_meses['Valor Total Pago'] = df_6_ou_mais_meses['Valor Total Pago'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
     else:
         df_6_ou_mais_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
+
 
 # Exibir as tabelas
     st.markdown("### Tabelas dos Servidores que recebem Diárias Consecutivas")

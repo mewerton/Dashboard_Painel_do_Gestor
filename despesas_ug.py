@@ -23,14 +23,26 @@ def run_dashboard():
         st.error("Nenhum dado foi carregado. Por favor, verifique os arquivos de entrada.")
         return
 
+    # # Função para formatar valores monetários abreviados
+    # def format_currency(value):
+    #     if value >= 1e6:
+    #         return locale.currency(value / 1e6, grouping=True) + ' M'
+    #     elif value >= 1e3:
+    #         return locale.currency(value / 1e3, grouping=True) + ' K'
+    #     else:
+    #         return locale.currency(value, grouping=True)
+
     # Função para formatar valores monetários abreviados
     def format_currency(value):
-        if value >= 1e6:
-            return locale.currency(value / 1e6, grouping=True) + ' M'
+        if value >= 1e9:
+            return f"R$ {value / 1e9:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + ' B'
+        elif value >= 1e6:
+            return f"R$ {value / 1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + ' M'
         elif value >= 1e3:
-            return locale.currency(value / 1e3, grouping=True) + ' K'
+            return f"R$ {value / 1e3:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + ' K'
         else:
-            return locale.currency(value, grouping=True)
+            return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
 
    
     # Carregar o sidebar
@@ -62,7 +74,10 @@ def run_dashboard():
     valor_total_despesas = df_filtered['VALOR_PAGO'].sum()
 
     # Formatar valor total para moeda
-    valor_total_formatado = locale.currency(valor_total_despesas, grouping=True)
+    #valor_total_formatado = locale.currency(valor_total_despesas, grouping=True)
+
+    valor_total_formatado = f"R$ {valor_total_despesas:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
 
     # Adicionar métricas ao painel
     selected_ug_description = "Descrição não encontrada"
@@ -125,8 +140,11 @@ def run_dashboard():
     # Função para criar gráficos de barras horizontais
     def plot_bar_chart(df, group_col, title, x_label, y_label, color='#E55115'):
         df_grouped = df.groupby(group_col)['VALOR_PAGO'].sum().reset_index()
-        df_grouped['VALOR_PAGO_FORMATADO'] = df_grouped['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
-    
+        #df_grouped['VALOR_PAGO_FORMATADO'] = df_grouped['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+        df_grouped['VALOR_PAGO_FORMATADO'] = df_grouped['VALOR_PAGO'].apply(
+            lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else "R$ 0,00"
+        )
+
     # Criar o gráfico de barras horizontais com a cor especificada
         fig = px.bar(
             df_grouped, 
@@ -155,7 +173,11 @@ def run_dashboard():
     # Gráfico de Barras: Despesas por Favorecido
     df_favorecido = df_filtered.groupby('NOME_FAVORECIDO')['VALOR_PAGO'].sum().reset_index()
     df_favorecido = df_favorecido.sort_values(by='VALOR_PAGO', ascending=False).head(10)  # Exibir os 10 maiores favorecidos
-    df_favorecido['VALOR_PAGO_FORMATADO'] = df_favorecido['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+    #df_favorecido['VALOR_PAGO_FORMATADO'] = df_favorecido['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+    df_favorecido['VALOR_PAGO_FORMATADO'] = df_favorecido['VALOR_PAGO'].apply(
+        lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else "R$ 0,00"
+    )
+
 
     # Criar o gráfico de barras horizontais com a cor especificada
     fig_favorecido = px.bar(
@@ -182,7 +204,11 @@ def run_dashboard():
     df_natureza = df_filtered.groupby(['DESCRICAO_NATUREZA1', 'DESCRICAO_NATUREZA2', 'DESCRICAO_NATUREZA3', 'DESCRICAO_NATUREZA4', 'DESCRICAO_NATUREZA5', 'DESCRICAO_NATUREZA6'])['VALOR_PAGO'].sum().reset_index()
 
     # Formatar os valores como moeda
-    df_natureza['VALOR_PAGO_FORMATADO'] = df_natureza['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+    #df_natureza['VALOR_PAGO_FORMATADO'] = df_natureza['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
+    df_natureza['VALOR_PAGO_FORMATADO'] = df_natureza['VALOR_PAGO'].apply(
+        lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else "R$ 0,00"
+    )
+
 
     # Opções de seleção de naturezas
     opcoes_natureza = {
