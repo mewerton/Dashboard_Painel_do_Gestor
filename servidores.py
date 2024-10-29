@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 import locale
 from sidebar import load_sidebar  # Agora você usa a função centralizada do sidebar
 from data_loader import load_servidores_data
@@ -68,62 +70,141 @@ def run_dashboard():
 
 
     # Exibir as métricas
-    st.title('Dashboard de Servidores')
+    #st.title('Dashboard de Servidores')
     
     # Gráficos 1 e 2 em uma linha
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([3,1])
 
     with col1:
-        st.header('Distribuição por Grau de Instrução')
         grau_instrucao_counts = filtered_df['Grau_Instrucao_Desc'].value_counts()
-        fig1 = px.bar(grau_instrucao_counts, 
-                      x=grau_instrucao_counts.index, 
-                      y=grau_instrucao_counts.values, 
-                      labels={'x': 'Grau de Instrução', 'y': 'Contagem'})
+        fig1 = px.bar(
+            grau_instrucao_counts, 
+            x=grau_instrucao_counts.index, 
+            y=grau_instrucao_counts.values,
+            title="Distribuição por Grau de Instrução", 
+            labels={'x': 'Grau de Instrução', 'y': 'Quantidade'}
+        )
+
+        # Ajustar cores para barras com tons de azul variando com a altura
+        fig1.update_traces(marker=dict(
+            color=grau_instrucao_counts.values,
+            colorscale='Blues',  # Variedade de tons azuis
+            showscale=False
+        ))
         st.plotly_chart(fig1)
 
     with col2:
-        st.header('Distribuição de Sexo dos Funcionários')
         sexo_counts = filtered_df['Sexo_Desc'].value_counts()
-        fig2 = px.pie(values=sexo_counts.values, 
-                      names=sexo_counts.index, 
-                      title="Distribuição por Sexo", 
-                      hole=0.3)
+        fig2 = px.pie(
+            values=sexo_counts.values, 
+            names=sexo_counts.index, 
+            title="Distribuição de Sexo dos Funcionários",
+            opacity=0.9,
+            hole=0.3
+        )
+
+        # Ajustar cores para setores de pizza em tons de roxo
+        fig2.update_traces(marker=dict(
+            colors=['#FCDC20', '#E55115'],  # Cores roxas contrastantes
+        ))
+        
+            # Configurar o hovertemplate para exibir "Sexo" e "Total"
+        fig2.update_traces(hovertemplate='%{label}<br>Total: %{value}')
+        fig2.update_layout(showlegend=False)  # Remover a legenda
+
         st.plotly_chart(fig2)
 
     # Gráficos 3 e 4 em uma linha
-    col3, col4 = st.columns(2)
+    col3, col4 = st.columns([4,1])
 
+# Gráfico de Distribuição por Faixa Etária
     with col3:
-        st.header('Distribuição por Faixa Etária')
         filtered_df['Data_Nascimento'] = pd.to_datetime(filtered_df['Data_Nascimento'], format='%Y%m%d')
         filtered_df['Idade'] = pd.to_datetime('today').year - filtered_df['Data_Nascimento'].dt.year
-        fig3 = px.histogram(filtered_df, x='Idade', nbins=10, title='Distribuição por Faixa Etária')
+        
+        # Usar histograma de densidade para suavizar o visual
+        fig3 = px.histogram(
+            filtered_df, 
+            x='Idade', 
+            nbins=10, 
+            title='Distribuição por Faixa Etária',
+            #opacity=0.9,
+            marginal="rug",  # Adiciona rug plot nas margens
+            color_discrete_sequence=["#2E9D9F"]  # Cor em tons de amarelo
+        )
+        fig3.update_traces(marker_line=dict(width=0.5),
+            hovertemplate="Idade: %{x}<br>Quantidade: %{y}"
+            )  
+        fig3.update_layout(
+            xaxis_title="Idade",
+            yaxis_title="Quantidade",
+            hovermode="x",
+        )
         st.plotly_chart(fig3)
 
+    # Gráfico de Distribuição de Valores Financeiros por Tipo de Verba
     with col4:
-        st.header('Distribuição de Valores Financeiros por Tipo de Verba')
+        # Remover valores NaN nas colunas de interesse
+        filtered_df = filtered_df.dropna(subset=['Financ_Verba_Desc', 'Financ_Valor_Calculado'])
+        
+        # Certificar que Financ_Valor_Calculado está em formato numérico
         filtered_df['Financ_Valor_Calculado'] = pd.to_numeric(filtered_df['Financ_Valor_Calculado'], errors='coerce')
+        
+        # Agrupar dados por tipo de verba
         valores_verba = filtered_df.groupby('Financ_Verba_Desc')['Financ_Valor_Calculado'].sum().reset_index()
-        fig4 = px.bar(valores_verba, x='Financ_Verba_Desc', y='Financ_Valor_Calculado',
-                      title="Distribuição de Valores Financeiros por Verba",
-                      labels={'Financ_Verba_Desc': 'Tipo de Verba', 'Financ_Valor_Calculado': 'Valor Total'})
+        
+        fig4 = px.bar(
+            valores_verba,
+            x='Financ_Verba_Desc',
+            y='Financ_Valor_Calculado',
+            title="Valores Financeiros por Verba",
+            labels={'Financ_Verba_Desc': 'Tipo de Verba', 'Financ_Valor_Calculado': 'Valor Total'},
+            color='Financ_Verba_Desc',
+            color_discrete_sequence=["#009933"]
+        )
+        fig4.update_traces(texttemplate='R$ %{y:,.2f}', textposition='outside')
+        fig4.update_layout(
+            xaxis_title="Tipo de Verba",
+            yaxis_title="Valor Total",
+            showlegend=False
+        )
         st.plotly_chart(fig4)
 
     # Gráfico 7: Comparação de Funcionários com e sem Função Gratificada
-    st.header('Funcionários com e sem Função Gratificada')
-    funcao_gratificada_counts = filtered_df['Funcao_Gratificada_Comissao_Desc'].value_counts().reset_index()
-    funcao_gratificada_counts.columns = ['Função Gratificada', 'Contagem']
-    fig7 = px.bar(funcao_gratificada_counts, x='Função Gratificada', y='Contagem', 
-                  title='Funcionários com e sem Função Gratificada')
-    st.plotly_chart(fig7)
+    #st.header('Funcionários com e sem Função Gratificada')
+    # funcao_gratificada_counts = filtered_df['Funcao_Gratificada_Comissao_Desc'].value_counts().reset_index()
+    # funcao_gratificada_counts.columns = ['Função Gratificada', 'Contagem']
+    # fig7 = px.bar(funcao_gratificada_counts, x='Função Gratificada', y='Contagem', 
+    #               title='Funcionários com e sem Função Gratificada')
+    # st.plotly_chart(fig7)
 
-    # Gráfico 8: Média Salarial por Função
-    st.header('Média Salarial por Função')
+    # Gráfico de Média Salarial por Função
     media_salarial_por_funcao = filtered_df.groupby('Funcao_Efetiva_Desc')['Financ_Valor_Calculado'].mean().reset_index()
-    fig8 = px.bar(media_salarial_por_funcao, x='Funcao_Efetiva_Desc', y='Financ_Valor_Calculado', 
-                  title='Média Salarial por Função', 
-                  labels={'Funcao_Efetiva_Desc': 'Função', 'Financ_Valor_Calculado': 'Média Salarial (R$)'})
+
+    # Normalizar os valores para definir a intensidade das cores
+    norm = (media_salarial_por_funcao['Financ_Valor_Calculado'] - media_salarial_por_funcao['Financ_Valor_Calculado'].min()) / (media_salarial_por_funcao['Financ_Valor_Calculado'].max() - media_salarial_por_funcao['Financ_Valor_Calculado'].min())
+
+    # Criar a figura usando o gráfico de barras do Plotly
+    fig8 = go.Figure(data=[
+        go.Bar(
+            x=media_salarial_por_funcao['Funcao_Efetiva_Desc'],
+            y=media_salarial_por_funcao['Financ_Valor_Calculado'],
+            marker=dict(
+                color=['#E55115' if np.isnan(v) else f'rgba(229, 81, 21, {v + 0.3})' for v in norm]  # Ajusta transparência baseada na normalização
+            ),
+            text=[f'R$ {y:,.2f}' for y in media_salarial_por_funcao['Financ_Valor_Calculado']],
+            textposition='outside'
+        )
+    ])
+
+    # Atualizar o layout do gráfico
+    fig8.update_layout(
+        title='Média Salarial por Função',
+        xaxis_title="Função",
+        yaxis_title="Média Salarial (R$)",
+        showlegend=False
+    )
+
     st.plotly_chart(fig8)
 
     # Campo de pesquisa por palavra-chave
@@ -137,6 +218,9 @@ def run_dashboard():
         ]
     else:
         filtered_table = filtered_df
+
+    # Ocultar os últimos 4 dígitos do CPF visualmente
+    filtered_table['CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
 
     # Exibir a tabela com os servidores filtrados
     st.header('Servidores da Unidade Selecionada')
