@@ -146,13 +146,19 @@ def load_contracts_data():
     if not aditivos_file or not contratos_file:
         st.error('Arquivos "aditivos_reajustes.parquet" ou "lista_contratos_siafe.parquet" não encontrados.')
         return pd.DataFrame(), pd.DataFrame()
+    
+    # Inicializar a barra de progresso
+    progress_bar = st.progress(0)
+    total_files = 2  # Apenas dois arquivos, aditivos e contratos
 
     # Baixar os arquivos e carregar como DataFrames
     aditivos_content = download_file_from_drive(service, aditivos_file['id'])
     contratos_content = download_file_from_drive(service, contratos_file['id'])
 
     df_aditivos = pq.read_table(aditivos_content).to_pandas()
+    progress_bar.progress(1 / total_files)
     df_contratos = pq.read_table(contratos_content).to_pandas()
+    progress_bar.progress(2 / total_files)
 
     return df_aditivos, df_contratos
 
@@ -186,10 +192,16 @@ def load_servidores_data():
     if not folha_file:
         st.error('Nenhum arquivo .parquet encontrado na pasta "folha de pagamento".')
         return pd.DataFrame()
+    
+    # Inicializar a barra de progresso
+    progress_bar = st.progress(0)
 
     # Baixar o arquivo e carregar como DataFrame
     folha_content = download_file_from_drive(service, folha_file['id'])
     df_servidores = pq.read_table(folha_content).to_pandas()
+
+    # Atualizar a barra de progresso para 100% após o carregamento do arquivo
+    progress_bar.progress(1.0)
 
     return df_servidores
 
