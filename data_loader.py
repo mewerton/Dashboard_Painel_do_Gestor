@@ -12,21 +12,7 @@ import json
 load_dotenv()
 
 # Caminho para o arquivo de credenciais da conta de serviço
-#CREDENTIALS_FILE = json.loads(os.getenv('CREDENTIALS_FILE'))
-
-# Construir o JSON de credenciais
-credentials_info = {
-    "type": os.getenv("CREDENTIALS_FILE_TYPE"),
-    "project_id": os.getenv("PROJECT_ID"),
-    "private_key_id": os.getenv("PRIVATE_KEY_ID"),
-    "private_key": os.getenv("PRIVATE_KEY").replace("\\n", "\n"),  # Corrigir o formato da chave
-    "client_email": os.getenv("CLIENT_EMAIL"),
-    "client_id": os.getenv("CLIENT_ID"),
-    "auth_uri": os.getenv("AUTH_URI"),
-    "token_uri": os.getenv("TOKEN_URI"),
-    "auth_provider_x509_cert_url": os.getenv("AUTH_PROVIDER_CERT_URL"),
-    "client_x509_cert_url": os.getenv("CLIENT_CERT_URL"),
-}
+CREDENTIALS_FILE = json.loads(os.getenv('CREDENTIALS_FILE'))
 
 # ID da pasta do Google Drive onde estão os dados "dataset_despesas_detalhado"
 FOLDER_ID = os.getenv('FOLDER_ID')
@@ -35,44 +21,31 @@ FOLDER_ID = os.getenv('FOLDER_ID')
 CONTRATOS_FOLDER_ID = os.getenv('CONTRATOS_FOLDER_ID')
 
 # Função para autenticar e construir o serviço Google Drive API
-# def get_drive_service():
-#     # Carregar o JSON como um dicionário do .env
-#     credentials_info = json.loads(os.getenv('CREDENTIALS_FILE'))
-    
-#     # Usar from_service_account_info para passar o dicionário em vez de um arquivo
-#     credentials = service_account.Credentials.from_service_account_info(
-#         credentials_info,
-#         scopes=['https://www.googleapis.com/auth/drive']
-#     )
-    
-#     return build('drive', 'v3', credentials=credentials)
-
-# Função para autenticar e construir o serviço Google Drive API
 def get_drive_service():
+    # Carregar o JSON como um dicionário do .env
+    credentials_info = json.loads(os.getenv('CREDENTIALS_FILE'))
+
+    # Usar from_service_account_info para passar o dicionário em vez de um arquivo
     credentials = service_account.Credentials.from_service_account_info(
         credentials_info,
         scopes=['https://www.googleapis.com/auth/drive']
     )
+
     return build('drive', 'v3', credentials=credentials)
 
 # ========== Login CSV Data Loader ==========
-
 # Função para listar arquivos .csv na pasta de login no Google Drive
 def list_login_files(service):
     LOGIN_FOLDER_ID = os.getenv('LOGIN_FOLDER_ID')  # Adicionar o ID da pasta de login no .env
-
     login_files = service.files().list(
         q=f"'{LOGIN_FOLDER_ID}' in parents and name contains '.csv'",
         fields="files(id, name)",
         orderBy='createdTime desc'
     ).execute().get('files', [])
-
     if not login_files:
         st.error('Nenhum arquivo de login encontrado na pasta do Google Drive.')
         return None
-
     return login_files[0]  # Pegar o arquivo mais recente
-
 # Função para carregar o CSV de login do Google Drive (sem cache)
 def load_login_data():
     service = get_drive_service()
@@ -80,7 +53,6 @@ def load_login_data():
     login_file = list_login_files(service)
     if not login_file:
         return pd.DataFrame()
-
     # Baixar o arquivo CSV de login
     login_content = download_file_from_drive(service, login_file['id'])
     
@@ -88,9 +60,7 @@ def load_login_data():
     df_login = pd.read_csv(login_content)
     
     return df_login
-
 # ========== Fim do Login CSV Data Loader ==========
-
 
 # Função para listar arquivos .parquet na pasta de despesas e diárias no Google Drive
 def list_parquet_files(service):
@@ -147,13 +117,13 @@ def load_parquet_data_from_drive():
     # Carregar todos os arquivos .parquet e concatenar
     data_frames = []
     total_files = len(parquet_files)
-    
+
     # Inicializar a barra de progresso
     progress_bar = st.progress(0)
     for idx, file in enumerate(parquet_files):
         file_content = download_file_from_drive(service, file['id'])
         data_frames.append(pq.read_table(file_content).to_pandas())
-        
+
         # Atualizar a barra de progresso
         progress_percentage = (idx + 1) / total_files
         progress_bar.progress(progress_percentage)
@@ -191,7 +161,7 @@ def load_contracts_data():
 @st.cache_resource
 def load_servidores_data():
     service = get_drive_service()
-    
+
     # Carregar o ID da pasta do arquivo de folha a partir do .env
     FOLHA_FOLDER_ID = os.getenv('FOLHA_FOLDER_ID')
 
