@@ -22,6 +22,7 @@ despesas_ug2.py
 
 # Ignorar a pasta venv (ambiente virtual Python)
 venv/
+config.toml
 
 # Ignorar arquivos de cache Python
 __pycache__/

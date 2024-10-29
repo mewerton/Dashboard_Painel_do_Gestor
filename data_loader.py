@@ -4,26 +4,25 @@ import pyarrow.parquet as pq
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from io import BytesIO
-import os
-from dotenv import load_dotenv
 import json
+import toml
 
-# Carregar as variáveis do arquivo .env
-load_dotenv()
+# Carregar configurações do arquivo TOML
+config = toml.load('config.toml')
 
 # Caminho para o arquivo de credenciais da conta de serviço
-CREDENTIALS_FILE = json.loads(os.getenv('CREDENTIALS_FILE'))
+CREDENTIALS_FILE = json.loads(config['CREDENTIALS_FILE'])
 
 # ID da pasta do Google Drive onde estão os dados "dataset_despesas_detalhado"
-FOLDER_ID = os.getenv('FOLDER_ID')
+FOLDER_ID = config['FOLDER_ID']
 
 # ID da pasta do Google Drive onde estão os dados "contratos"
-CONTRATOS_FOLDER_ID = os.getenv('CONTRATOS_FOLDER_ID')
+CONTRATOS_FOLDER_ID = config['CONTRATOS_FOLDER_ID']
 
 # Função para autenticar e construir o serviço Google Drive API
 def get_drive_service():
     # Carregar o JSON como um dicionário do .env
-    credentials_info = json.loads(os.getenv('CREDENTIALS_FILE'))
+    credentials_info = json.loads(config['CREDENTIALS_FILE'])
 
     # Usar from_service_account_info para passar o dicionário em vez de um arquivo
     credentials = service_account.Credentials.from_service_account_info(
@@ -36,7 +35,7 @@ def get_drive_service():
 # ========== Login CSV Data Loader ==========
 # Função para listar arquivos .csv na pasta de login no Google Drive
 def list_login_files(service):
-    LOGIN_FOLDER_ID = os.getenv('LOGIN_FOLDER_ID')  # Adicionar o ID da pasta de login no .env
+    LOGIN_FOLDER_ID = config['LOGIN_FOLDER_ID']  # Adicionar o ID da pasta de login no .env
     login_files = service.files().list(
         q=f"'{LOGIN_FOLDER_ID}' in parents and name contains '.csv'",
         fields="files(id, name)",
@@ -163,7 +162,7 @@ def load_servidores_data():
     service = get_drive_service()
 
     # Carregar o ID da pasta do arquivo de folha a partir do .env
-    FOLHA_FOLDER_ID = os.getenv('FOLHA_FOLDER_ID')
+    FOLHA_FOLDER_ID = config['FOLHA_FOLDER_ID']
 
     if not FOLHA_FOLDER_ID:
         st.error('ID da pasta da folha de pagamento não encontrado. Verifique o arquivo .env.')
