@@ -2,8 +2,14 @@ import streamlit as st
 import pandas as pd
 from chatbot import render_chatbot
 
-def load_sidebar(df, dashboard_name):
+def render_logout_button():
+    if st.sidebar.button("Logout"):
+        st.session_state.update(authenticated=False, data=None)
 
+def load_sidebar(df, dashboard_name):
+    # Exibe o botão de logout no sidebar
+    render_logout_button()
+    
      # ========= FILTROS DOS SERVIDORES =========
 
     if dashboard_name == 'Servidores':

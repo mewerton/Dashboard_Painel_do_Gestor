@@ -96,7 +96,7 @@ if 'authenticated' not in st.session_state:
 if not st.session_state['authenticated']:
     login()
 else:
-    st.button("Logout", on_click=lambda: st.session_state.update(authenticated=False, data=None))
+    #st.button("Logout", on_click=lambda: st.session_state.update(authenticated=False, data=None))
     selected_page = navigate_pages()
     if selected_page == 'Despesas Detalhado':
         despesas_ug.run_dashboard()

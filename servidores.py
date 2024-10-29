@@ -69,8 +69,8 @@ def run_dashboard():
 
     # Exibir as métricas
     st.title('Dashboard de Servidores')
-
-     # Gráficos 1 e 2 em uma linha
+    
+    # Gráficos 1 e 2 em uma linha
     col1, col2 = st.columns(2)
 
     with col1:
