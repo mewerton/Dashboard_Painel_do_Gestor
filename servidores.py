@@ -73,24 +73,49 @@ def run_dashboard():
     #st.title('Dashboard de Servidores')
     
     # Gráficos 1 e 2 em uma linha
-    col1, col2 = st.columns([3,1])
+    col1, col2 = st.columns([4,1])
 
+    # Gráfico de Distribuição por Grau de Instrução, agrupado por Sexo
     with col1:
-        grau_instrucao_counts = filtered_df['Grau_Instrucao_Desc'].value_counts()
+        # Agrupar os dados por Grau de Instrução e Sexo para contar a quantidade
+        grau_instrucao_sexo_counts = filtered_df.groupby(['Grau_Instrucao_Desc', 'Sexo_Desc']).size().reset_index(name='Quantidade')
+
+        # Calcular a soma total por Grau de Instrução para ordenar
+        total_counts = grau_instrucao_sexo_counts.groupby('Grau_Instrucao_Desc')['Quantidade'].sum().reset_index()
+        total_counts = total_counts.sort_values(by='Quantidade', ascending=False)
+
+        # Ordenar o DataFrame principal com base na ordem desejada do Grau de Instrução
+        grau_instrucao_sexo_counts['Grau_Instrucao_Desc'] = pd.Categorical(
+            grau_instrucao_sexo_counts['Grau_Instrucao_Desc'], 
+            categories=total_counts['Grau_Instrucao_Desc'],
+            ordered=True
+        )
+        grau_instrucao_sexo_counts = grau_instrucao_sexo_counts.sort_values('Grau_Instrucao_Desc')
+
+        # Criar o gráfico de barras agrupadas
         fig1 = px.bar(
-            grau_instrucao_counts, 
-            x=grau_instrucao_counts.index, 
-            y=grau_instrucao_counts.values,
-            title="Distribuição por Grau de Instrução", 
-            labels={'x': 'Grau de Instrução', 'y': 'Quantidade'}
+            grau_instrucao_sexo_counts,
+            x='Grau_Instrucao_Desc',
+            y='Quantidade',
+            color='Sexo_Desc',  # Diferenciar as barras por sexo
+            title="Distribuição por Grau de Instrução e Sexo",
+            labels={'Grau_Instrucao_Desc': 'Grau de Instrução', 'Quantidade': 'Quantidade'},
+            color_discrete_sequence=['#F1C40F ', '#9B59B6'],  # Cores especificadas para cada sexo
+            barmode='group'  # Agrupar as barras para cada nível de instrução
         )
 
-        # Ajustar cores para barras com tons de azul variando com a altura
-        fig1.update_traces(marker=dict(
-            color=grau_instrucao_counts.values,
-            colorscale='Blues',  # Variedade de tons azuis
-            showscale=False
-        ))
+        # Ajustar layout e hover
+        fig1.update_traces(texttemplate='%{y}', textposition='outside')  # Exibe quantidade no topo das barras
+        fig1.update_layout(
+            xaxis_title="Grau de Instrução",
+            yaxis_title="Quantidade",
+            hovermode="x",
+            showlegend=False,
+            height=600,  # Aumenta a altura do gráfico (você pode ajustar conforme necessário)
+            legend_tracegroupgap=0
+        )
+
+        # Exibir o gráfico no dashboard
         st.plotly_chart(fig1)
 
     with col2:
@@ -105,7 +130,7 @@ def run_dashboard():
 
         # Ajustar cores para setores de pizza em tons de roxo
         fig2.update_traces(marker=dict(
-            colors=['#FCDC20', '#E55115'],  # Cores roxas contrastantes
+            colors=['#9B59B6 ', '#F1C40F'],  # Cores roxas contrastantes
         ))
         
             # Configurar o hovertemplate para exibir "Sexo" e "Total"
@@ -117,29 +142,47 @@ def run_dashboard():
     # Gráficos 3 e 4 em uma linha
     col3, col4 = st.columns([4,1])
 
-# Gráfico de Distribuição por Faixa Etária
+    # Gráfico de Distribuição por Faixa Etária
     with col3:
+        # Calcular idade para cada funcionário e garantir que a coluna Idade esteja precisa
         filtered_df['Data_Nascimento'] = pd.to_datetime(filtered_df['Data_Nascimento'], format='%Y%m%d')
         filtered_df['Idade'] = pd.to_datetime('today').year - filtered_df['Data_Nascimento'].dt.year
-        
-        # Usar histograma de densidade para suavizar o visual
-        fig3 = px.histogram(
-            filtered_df, 
+
+        # Agrupar por idade para obter a quantidade de funcionários em cada faixa etária
+        idade_counts = filtered_df['Idade'].value_counts().reset_index()
+        idade_counts.columns = ['Idade', 'Quantidade']
+        idade_counts = idade_counts.sort_values(by='Idade')  # Organizar por idade
+
+        # Criar o histograma usando os valores calculados
+        fig3 = px.bar(
+            idade_counts, 
             x='Idade', 
-            nbins=10, 
+            y='Quantidade', 
             title='Distribuição por Faixa Etária',
-            #opacity=0.9,
-            marginal="rug",  # Adiciona rug plot nas margens
-            color_discrete_sequence=["#2E9D9F"]  # Cor em tons de amarelo
+            color_discrete_sequence=["#2E9D9F"]  # Cor em tons de azul
         )
-        fig3.update_traces(marker_line=dict(width=0.5),
-            hovertemplate="Idade: %{x}<br>Quantidade: %{y}"
-            )  
+        
+        fig3.update_traces(
+            marker_line=dict(width=0.5),  # Borda leve nas barras
+            hovertemplate="Idade: %{x}<br>Quantidade: %{y}"  # Exibir idade e quantidade no hover
+        )
+        
+        # Adicionar o Rug Plot acima do gráfico de barras
+        fig3.add_scatter(
+            x=filtered_df['Idade'], 
+            y=[idade_counts['Quantidade'].max() * 1.1] * len(filtered_df),  # Posicionar o rug plot acima das barras
+            mode='markers',
+            marker=dict(color="rgba(46, 157, 159, 0.5)", size=8),
+            hovertemplate="Idade: %{x}",  # Exibir apenas a idade no hover do rug plot
+            showlegend=False  # Não exibir na legenda
+        )
+        
         fig3.update_layout(
             xaxis_title="Idade",
             yaxis_title="Quantidade",
             hovermode="x",
         )
+        
         st.plotly_chart(fig3)
 
     # Gráfico de Distribuição de Valores Financeiros por Tipo de Verba
@@ -215,9 +258,9 @@ def run_dashboard():
         filtered_table = filtered_df[
             filtered_df['Nome_Funcionario'].str.contains(search_term, case=False, na=False) | 
             filtered_df['CPF'].str.contains(search_term, case=False, na=False)
-        ]
+        ].copy()  # Adiciona .copy() para evitar o alerta
     else:
-        filtered_table = filtered_df
+        filtered_table = filtered_df.copy()  # Adiciona .copy() para manter consistência
 
     # Ocultar os últimos 4 dígitos do CPF visualmente
     filtered_table['CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
