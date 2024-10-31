@@ -100,7 +100,7 @@ def run_dashboard():
             color='Sexo_Desc',  # Diferenciar as barras por sexo
             title="Distribuição por Grau de Instrução e Sexo",
             labels={'Grau_Instrucao_Desc': 'Grau de Instrução', 'Quantidade': 'Quantidade'},
-            color_discrete_sequence=['#9B59B6 ', '#F1C40F'],  # Cores especificadas para cada sexo
+            color_discrete_sequence=['#F1C40F', '#9B59B6'],  # Cores especificadas para cada sexo
             barmode='group'  # Agrupar as barras para cada nível de instrução
         )
 
@@ -130,7 +130,7 @@ def run_dashboard():
 
         # Ajustar cores para setores de pizza em tons de roxo
         fig2.update_traces(marker=dict(
-            colors=['#9B59B6 ', '#F1C40F'],  # Cores roxas contrastantes
+            colors=['#F1C40F', '#9B59B6'],  # Cores roxas contrastantes
         ))
         
             # Configurar o hovertemplate para exibir "Sexo" e "Total"
