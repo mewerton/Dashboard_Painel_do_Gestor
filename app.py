@@ -28,7 +28,7 @@ with header:
         st.markdown('<style>h1 { margin-left: 0px; font-size: 30px; }</style>', unsafe_allow_html=True)
         st.title('Painel do Gestor')
     with col2:
-        st.image('./src/assets/logo.png', width=350)
+        st.image('./src/assets/logo2.png', width=350)
         st.text("")
 
 # Função para gerar hash da senha
