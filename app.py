@@ -23,12 +23,12 @@ header = st.container()
 
 # Adicionar a imagem e o título dentro do contêiner
 with header:
-    col1, col2 = st.columns([5, 1])
+    col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown('<style>h1 { margin-left: 0px; font-size: 30px; }</style>', unsafe_allow_html=True)
         st.title('Painel do Gestor')
     with col2:
-        st.image('./src/assets/logo.png', width=150)
+        st.image('./src/assets/logo.png', width=350)
         st.text("")
 
 # Função para gerar hash da senha
