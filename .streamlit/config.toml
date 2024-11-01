@@ -1,0 +1,16 @@
+[theme]
+base="dark"
+# Cor principal para elementos interativos
+primaryColor = "#0e89f7"
+
+# Cor de fundo para a área principal do conteúdo
+backgroundColor = "#192025"
+
+# Cor de fundo para a barra lateral e a maioria dos widgets interativos
+secondaryBackgroundColor = "#36373d"
+
+# Cor usada para quase todos os textos
+textColor = "#FFFFFF"
+
+# Família de fontes para todos os textos no app, exceto blocos de código
+font = "sans serif"
