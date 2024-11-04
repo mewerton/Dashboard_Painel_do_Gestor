@@ -1,10 +1,11 @@
-import os
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+# import os
+# os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import streamlit as st
 import hashlib
 import time
-import pandas as pd  # Importar pandas para manipular o CSV
+import pandas as pd  
+import base64
 import despesas_ug
 import diarias
 import contratos
@@ -21,15 +22,30 @@ st.set_page_config(layout="wide")
 # Criar um contêiner fixo no topo da página
 header = st.container()
 
-# Adicionar a imagem e o título dentro do contêiner
-with header:
-    col1, col2 = st.columns([3, 1])
+def get_image_as_base64(file_path):
+    with open(file_path, "rb") as file:
+        return base64.b64encode(file.read()).decode("utf-8")
+
+logo_path = "./src/assets/logo2.png"
+logo_base64 = get_image_as_base64(logo_path)
+
+with st.container():
+    col1, col2 = st.columns([1, 1])
+    
     with col1:
         st.markdown('<style>h1 { margin-left: 0px; font-size: 30px; }</style>', unsafe_allow_html=True)
         st.title('Painel do Gestor')
+    
     with col2:
-        st.image('./src/assets/logo2.png', width=350)
-        st.text("")
+        st.markdown(
+            f"""
+            <div style="text-align: right; margin-right: 10px;">
+                <img src="data:image/png;base64,{logo_base64}" width="350">
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
 
 # Função para gerar hash da senha
 def make_hashes(password):
