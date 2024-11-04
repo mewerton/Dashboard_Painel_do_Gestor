@@ -18,6 +18,7 @@ validation.py
 despesas.py
 contrato.py
 despesas_ug2.py
+servidores copy.py
 
 
 # Ignorar a pasta venv (ambiente virtual Python)

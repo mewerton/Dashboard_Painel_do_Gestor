@@ -3,7 +3,7 @@ import pandas as pd
 from chatbot import render_chatbot
 
 def render_logout_button():
-    if st.sidebar.button("Logout"):
+    if st.sidebar.button("Sair"):
         st.session_state.update(authenticated=False, data=None)
 
 def load_sidebar(df, dashboard_name):
