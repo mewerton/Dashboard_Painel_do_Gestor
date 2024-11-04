@@ -51,12 +51,13 @@ def run_dashboard():
     # Carregar o sidebar para "Servidores" e obter a Unidade
     selected_unidade = load_sidebar(df, "Servidores")
 
-     # Chame o chatbot para renderizar no sidebar
+    # Chame o chatbot para renderizar no sidebar
     render_chatbot()
 
-    if selected_unidade is None:
-        st.warning("Nenhuma Unidade selecionada. Exibindo todos os dados disponíveis.")
-        filtered_df = df.copy()  # Certifica-se de que é uma cópia
+    # Verifique se nenhuma Unidade foi selecionada
+    if not selected_unidade:
+        st.warning("Nenhuma Unidade selecionada. Por favor, selecione uma Unidade para visualizar os dados.")
+        return  # Encerra a função aqui se nenhuma unidade foi selecionada
     else:
         # Converter selected_unidade para o formato com zeros à esquerda
         selected_unidade = str(selected_unidade).zfill(8)
