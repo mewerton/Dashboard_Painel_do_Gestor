@@ -176,7 +176,8 @@ def run_dashboard():
         selected_licitacoes = st.multiselect(
             'Selecione o(s) Tipo(s) de Licitação para visualizar os contratos:',
             options=df_valores_licitacao['NOM_TIPO_LICITACAO'].unique(),
-            help="Escolha um ou mais tipos de licitação para exibir a tabela de contratos."
+            help="Escolha um ou mais tipos de licitação para exibir a tabela de contratos.",
+            placeholder="Escolha uma opção"
         )
 
         # Exibir tabela se pelo menos um tipo de licitação for selecionado

@@ -13,6 +13,7 @@ import servidores  # Novo dashboard de Servidores
 import adiantamentos  # Novo dashboard de Servidores
 import combustivel  # Novo dashboard de Servidores
 import orcamento  # Novo dashboard de Servidores
+import home  # Novo dashboard de Servidores
 from sidebar import load_sidebar, navigate_pages
 from data_loader import load_data, load_login_data # Importar o módulo de carregamento de dados
 
@@ -114,7 +115,9 @@ if not st.session_state['authenticated']:
 else:
     #st.button("Logout", on_click=lambda: st.session_state.update(authenticated=False, data=None))
     selected_page = navigate_pages()
-    if selected_page == 'Despesas Detalhado':
+    if selected_page == 'Início':
+        home.run_dashboard()
+    elif selected_page == 'Despesas Detalhado':
         despesas_ug.run_dashboard()
     elif selected_page == 'Diárias':
         diarias.run_dashboard()

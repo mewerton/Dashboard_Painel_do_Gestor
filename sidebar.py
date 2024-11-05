@@ -57,7 +57,37 @@ def load_sidebar(df, dashboard_name):
             st.sidebar.warning("Selecione uma UG ou SIGLA para filtrar.")
             return None
 
+    # ========= FILTROS DA PÁGINA INICIAL =========
+    
+    elif dashboard_name == 'Início':
+        # Carregar o CSV contendo UG, descrição e sigla
+        df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
 
+        # Mapeamento UG -> Descrição e Sigla
+        ugs_interesse = df_ug_info['UG'].tolist()
+        siglas_ugs_interesse = df_ug_info['SIGLA_UG'].tolist()
+
+        # Combinar as opções de UG e SIGLA para exibição clara
+        options_combined_inicio = [
+            f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse, siglas_ugs_interesse)
+        ]
+
+        # Definir uma UG padrão
+        ugs_default_inicio = [410512]
+
+        # Filtro para seleção de UG ou Sigla
+        selected_ug_sigla_inicio = st.sidebar.multiselect(
+            'Selecione a UG ou a SIGLA de interesse:',
+            options=options_combined_inicio,
+            default=[f"{ug} - {siglas_ugs_interesse[ugs_interesse.index(ug)]}" for ug in ugs_default_inicio]
+        )
+
+        # Separar as UGs selecionadas
+        selected_ugs_inicio = [int(option.split(" - ")[0]) for option in selected_ug_sigla_inicio]
+
+        # Retornar as UGs selecionadas para a página inicial
+        return selected_ugs_inicio
+    
     # ========= FILTROS DE CONTRATOS =========
     elif dashboard_name == 'Contratos':
         # Carregar o CSV contendo UG, descrição e sigla
@@ -168,6 +198,7 @@ def load_sidebar(df, dashboard_name):
 def navigate_pages():
     page = st.sidebar.radio(
         'Navegação',
-        ('Despesas Detalhado', 'Diárias', 'Contratos', 'Servidores', 'Adiantamentos', 'Combustível', 'Orçamento')
+        ('Início', 'Despesas Detalhado', 'Diárias', 'Contratos', 'Servidores', 'Adiantamentos', 'Combustível', 'Orçamento'),
     )
+    
     return page
