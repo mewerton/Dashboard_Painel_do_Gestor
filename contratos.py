@@ -129,15 +129,32 @@ def run_dashboard():
         with col4:
             fig_donut_licitacao = px.pie(df_licitacao, values='quantidade', names='NOM_TIPO_LICITACAO', title='Proporção de Contratos por Tipo de Licitação', hole=0.4)
             st.plotly_chart(fig_donut_licitacao)
-
-    with tab2:
-
         
-        # Valores de contratos por tipo de licitação
-        df_valores_licitacao = df_contratos.groupby('NOM_TIPO_LICITACAO')['VALOR_TOTAL'].sum().reset_index()
+        # Distribuição de contratos
+        fig.update_traces(texttemplate='%{y}', textposition='auto')
+        fig.update_layout(barmode='stack', title='Distribuição de Contratos', xaxis_title='Categoria', yaxis_title='Contagem')
+        st.plotly_chart(fig, use_container_width=True)
 
-        df_valores_licitacao['VALOR_FORMATADO'] = df_valores_licitacao['VALOR_TOTAL'].apply(
-            lambda x: 'R$ {:,.2f}'.format(x).replace(',', 'X').replace('.', ',').replace('X', '.'))
+    # Funções para formatação
+    def formatar_valor(valor):
+        """Formatar o valor como moeda no padrão brasileiro."""
+        if pd.notnull(valor):
+            return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        return 'R$ 0,00'
+
+    def formatar_numero(numero):
+        """Formatar números inteiros com zeros à esquerda."""
+        return str(int(numero)).zfill(8)
+
+    def formatar_data(data):
+        """Formatar data no formato DD/MM/AAAA."""
+        return pd.to_datetime(data).dt.strftime('%d/%m/%Y')
+
+    # Aplicar as funções nas abas
+    with tab2:
+        # Agrupamento e formatação para o gráfico
+        df_valores_licitacao = df_contratos.groupby('NOM_TIPO_LICITACAO')['VALOR_TOTAL'].sum().reset_index()
+        df_valores_licitacao['VALOR_FORMATADO'] = df_valores_licitacao['VALOR_TOTAL'].apply(formatar_valor)
 
         fig_valores_licitacao = go.Figure(go.Bar(
             x=df_valores_licitacao['VALOR_TOTAL'],
@@ -145,7 +162,7 @@ def run_dashboard():
             text=df_valores_licitacao['VALOR_FORMATADO'],
             textposition='auto',
             orientation='h',
-            marker=dict(color='#095aa2')  # Define a cor das barras
+            marker=dict(color='#095aa2')
         ))
         fig_valores_licitacao.update_layout(
             title='Valores Totais de Contratos por Tipo de Licitação',
@@ -155,72 +172,65 @@ def run_dashboard():
         )
         st.plotly_chart(fig_valores_licitacao, use_container_width=True)
 
-        # Distribuição de contratos
-        fig.update_traces(texttemplate='%{y}', textposition='auto')
-        fig.update_layout(barmode='stack', title='Distribuição de Contratos', xaxis_title='Categoria', yaxis_title='Contagem')
-        st.plotly_chart(fig, use_container_width=True)
-        
-    with tab3:
-
-        # Formatação desejada
-        df_contratos['CODIGO_CONTRATO'] = df_contratos['CODIGO_CONTRATO'].astype(int).astype(str)
-        df_contratos['UG'] = df_contratos['UG'].astype(int).astype(str)
-        df_contratos['DATA_INICIO_VIGENCIA'] = pd.to_datetime(df_contratos['DATA_INICIO_VIGENCIA']).dt.strftime('%d/%m/%Y')
-        df_contratos['DATA_FIM_VIGENCIA'] = pd.to_datetime(df_contratos['DATA_FIM_VIGENCIA']).dt.strftime('%d/%m/%Y')
-        #df_contratos['VALOR_TOTAL'] = df_contratos['VALOR_TOTAL'].apply(lambda x: locale.currency(x, grouping=True))
-        df_contratos['VALOR_TOTAL'] = df_contratos['VALOR_TOTAL'].apply(
-            lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else 'R$ 0,00'
+        # Multiselect para tipos de licitação
+        selected_licitacoes = st.multiselect(
+            'Selecione o(s) Tipo(s) de Licitação para visualizar os contratos:',
+            options=df_valores_licitacao['NOM_TIPO_LICITACAO'].unique(),
+            help="Escolha um ou mais tipos de licitação para exibir a tabela de contratos."
         )
 
-        # Exibir tabela de contratos
-        st.subheader('Contratos da Unidade Gestora')
+        # Exibir tabela se pelo menos um tipo de licitação for selecionado
+        if selected_licitacoes:
+            # Filtrar o DataFrame para os tipos de licitação selecionados
+            filtered_table = df_contratos[df_contratos['NOM_TIPO_LICITACAO'].isin(selected_licitacoes)].copy()
 
-        # Campo de entrada para a palavra-chave de pesquisa
+            # Aplicar formatações
+            filtered_table['VALOR_TOTAL'] = filtered_table['VALOR_TOTAL'].apply(formatar_valor)
+            filtered_table['CODIGO_CONTRATO'] = filtered_table['CODIGO_CONTRATO'].apply(formatar_numero)
+            filtered_table['UG'] = filtered_table['UG'].apply(formatar_numero)
+            filtered_table['DATA_INICIO_VIGENCIA'] = formatar_data(filtered_table['DATA_INICIO_VIGENCIA'])
+            filtered_table['DATA_FIM_VIGENCIA'] = formatar_data(filtered_table['DATA_FIM_VIGENCIA'])
+
+            # Exibir tabela de contratos filtrados
+            st.header('Contratos por Tipo de Licitação Selecionado')
+            st.write(filtered_table[['CODIGO_CONTRATO', 'UG', 'NOME_CONTRATANTE', 'NOME_CONTRATADA', 'VALOR_TOTAL', 'NOME_CONTRATO', 'DATA_INICIO_VIGENCIA', 'DATA_FIM_VIGENCIA', 'DSC_SITUACAO']].reset_index(drop=True))
+
+            st.write(f"Total de contratos exibidos: {len(filtered_table)}")
+
+            # Calcular e exibir o valor total dos contratos filtrados
+            total_valor_contratos = filtered_table['VALOR_TOTAL'].str.replace('R$ ', '').str.replace('.', '').str.replace(',', '.').astype(float).sum()
+            st.write(f"Valor total dos contratos exibidos: {formatar_valor(total_valor_contratos)}")
+
+    with tab3:
+        # Aplicar formatações de valores, números e datas na aba de visualização completa de contratos
+        df_contratos['VALOR_TOTAL'] = df_contratos['VALOR_TOTAL'].apply(formatar_valor)
+        df_contratos['CODIGO_CONTRATO'] = df_contratos['CODIGO_CONTRATO'].apply(formatar_numero)
+        df_contratos['UG'] = df_contratos['UG'].apply(formatar_numero)
+        df_contratos['DATA_INICIO_VIGENCIA'] = formatar_data(df_contratos['DATA_INICIO_VIGENCIA'])
+        df_contratos['DATA_FIM_VIGENCIA'] = formatar_data(df_contratos['DATA_FIM_VIGENCIA'])
+
+        st.subheader('Contratos da Unidade Gestora')
         keyword = st.text_input('Digite uma palavra-chave para filtrar os contratos:')
 
-        # Aplicar o filtro se uma palavra-chave for inserida
         if keyword:
             df_contratos = df_contratos[df_contratos.apply(lambda row: row.astype(str).str.contains(keyword, case=False).any(), axis=1)]
 
-        # Mostrar todos os contratos da coluna "CODIGO_CONTRATO" da UG filtrada
         st.write(df_contratos[['CODIGO_CONTRATO', 'UG', 'NOME_CONTRATANTE', 'NOME_CONTRATADA', 'VALOR_TOTAL','NOME_CONTRATO', 'DATA_INICIO_VIGENCIA', 'DATA_FIM_VIGENCIA', 'DSC_SITUACAO']])
 
-            
-
-            # Mostrar tabela de Aditivos no final do dashboard
         if df_aditivos is not None:
-            # Filtrar os aditivos pelos contratos exibidos e criar uma cópia explícita para evitar o alerta
             df_aditivos_filtrados = df_aditivos[df_aditivos['COD_CONTRATO'].isin(df_contratos['CODIGO_CONTRATO'].astype(int))].copy()
-
-            # Formatação dos dados da tabela de aditivos
-            df_aditivos_filtrados['COD_CONTRATO'] = df_aditivos_filtrados['COD_CONTRATO'].astype(int).astype(str)
-            df_aditivos_filtrados['DATA_VIGENCIA_INICIAL'] = pd.to_datetime(df_aditivos_filtrados['DATA_VIGENCIA_INICIAL'], unit='ms').dt.strftime('%d/%m/%Y')
-            df_aditivos_filtrados['DATA_VIGENCIA_FINAL'] = pd.to_datetime(df_aditivos_filtrados['DATA_VIGENCIA_FINAL'], unit='ms').dt.strftime('%d/%m/%Y')
-            df_aditivos_filtrados['DATA_PUBLICACAO'] = pd.to_datetime(df_aditivos_filtrados['DATA_PUBLICACAO'], unit='ms').dt.strftime('%d/%m/%Y')
-
-            # Criar uma cópia para exibição e formatar valores como moeda
-            df_aditivos_filtrados_exibir = df_aditivos_filtrados.copy()
-            #df_aditivos_filtrados_exibir['VALOR_FORMATADO'] = df_aditivos_filtrados_exibir['VALOR'].apply(lambda x: locale.currency(x, grouping=True) if pd.notnull(x) else 'R$ 0,00')
-            df_aditivos_filtrados_exibir['VALOR_FORMATADO'] = df_aditivos_filtrados_exibir['VALOR'].apply(
-                lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else 'R$ 0,00'
-            )
-
+            df_aditivos_filtrados['VALOR_FORMATADO'] = df_aditivos_filtrados['VALOR'].apply(formatar_valor)
+            df_aditivos_filtrados['COD_CONTRATO'] = df_aditivos_filtrados['COD_CONTRATO'].apply(formatar_numero)
+            df_aditivos_filtrados['DATA_VIGENCIA_INICIAL'] = formatar_data(df_aditivos_filtrados['DATA_VIGENCIA_INICIAL'])
+            df_aditivos_filtrados['DATA_VIGENCIA_FINAL'] = formatar_data(df_aditivos_filtrados['DATA_VIGENCIA_FINAL'])
+            df_aditivos_filtrados['DATA_PUBLICACAO'] = formatar_data(df_aditivos_filtrados['DATA_PUBLICACAO'])
 
             st.subheader('Aditivos e Reajustes dos Contratos Exibidos')
+            st.write(df_aditivos_filtrados[['COD_CONTRATO', 'TIPO', 'NUM_ORIGINAL', 'NUM_PROCESSO', 'DATA_VIGENCIA_INICIAL', 'DATA_VIGENCIA_FINAL', 'DATA_PUBLICACAO', 'VALOR_FORMATADO', 'DSC_OBJETO']])
 
-            # Exibir tabela de aditivos com a coluna formatada para exibição
-            st.write(df_aditivos_filtrados_exibir[['COD_CONTRATO', 'TIPO', 'NUM_ORIGINAL', 'NUM_PROCESSO', 'DATA_VIGENCIA_INICIAL', 'DATA_VIGENCIA_FINAL', 'DATA_PUBLICACAO', 'VALOR_FORMATADO', 'DSC_OBJETO']])
-
-            # Calcular o valor total dos aditivos filtrados (mantendo a coluna 'VALOR' como numérica)
             valor_total_aditivos = df_aditivos_filtrados['VALOR'].sum()
+            st.markdown(f"**Valor total dos Aditivos/Reajustes filtrados: {formatar_valor(valor_total_aditivos)}**")
 
-            # Formatar o valor total como moeda
-            #valor_total_formatado = locale.currency(valor_total_aditivos, grouping=True)
-            valor_total_formatado = f"R$ {valor_total_aditivos:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
-
-            # Exibir o valor total abaixo da tabela
-            st.markdown(f"**Valor total dos Aditivos/Reajustes filtrados: {valor_total_formatado}**")
 
 
 
