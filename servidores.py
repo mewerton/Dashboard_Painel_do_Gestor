@@ -144,10 +144,37 @@ def run_dashboard():
             fig2.update_layout(showlegend=False)  # Remover a legenda
 
             st.plotly_chart(fig2)
+        
+        # Multiselect para escolher graus de instrução
+        selected_graus = st.multiselect(
+            'Selecione o(s) Grau(s) de Instrução para visualizar servidores:',
+            options=grau_instrucao_sexo_counts['Grau_Instrucao_Desc'].unique(),
+            help="Escolha um ou mais níveis de Grau de Instrução para exibir a tabela de servidores.",
+            placeholder="Escolha uma opção"
+        )
+
+        # Mostrar tabela apenas se pelo menos um Grau de Instrução estiver selecionado
+        if selected_graus:
+            # Filtrar o DataFrame para os Graus de Instrução selecionados
+            filtered_table = filtered_df[filtered_df['Grau_Instrucao_Desc'].isin(selected_graus)].copy()
+
+            # Ocultar os últimos 4 dígitos do CPF visualmente
+            filtered_table['CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
+
+            # Exibir a tabela com os servidores filtrados por Grau de Instrução
+            st.header('Servidores por Grau de Instrução Selecionado')
+            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].reset_index(drop=True))
+
+            # Contagem de servidores exibidos
+            st.write(f"Total de servidores exibidos: {len(filtered_table)}")
+
+            # Soma do valor total da coluna 'Financ_Valor_Calculado'
+            total_valor = filtered_table['Financ_Valor_Calculado'].sum()
+            st.write(f"Valor total calculado: R$ {total_valor:,.2f}")
 
     with tab2:
         # Gráficos 3 e 4 em uma linha
-        col3, col4 = st.columns([4,1])
+        col3, col4 = st.columns([4, 1])
 
         # Gráfico de Distribuição por Faixa Etária
         with col3:
@@ -168,20 +195,10 @@ def run_dashboard():
                 title='Distribuição por Faixa Etária',
                 color_discrete_sequence=["#2E9D9F"]  # Cor em tons de azul
             )
-            
+
             fig3.update_traces(
                 marker_line=dict(width=0.5),  # Borda leve nas barras
                 hovertemplate="Idade: %{x}<br>Quantidade: %{y}"  # Exibir idade e quantidade no hover
-            )
-            
-            # Adicionar o Rug Plot acima do gráfico de barras
-            fig3.add_scatter(
-                x=filtered_df['Idade'], 
-                y=[idade_counts['Quantidade'].max() * 1.1] * len(filtered_df),  # Posicionar o rug plot acima das barras
-                mode='markers',
-                marker=dict(color="rgba(46, 157, 159, 0.5)", size=8),
-                hovertemplate="Idade: %{x}",  # Exibir apenas a idade no hover do rug plot
-                showlegend=False  # Não exibir na legenda
             )
             
             fig3.update_layout(
@@ -219,6 +236,44 @@ def run_dashboard():
                 showlegend=False
             )
             st.plotly_chart(fig4)
+
+        # Filtro de Idade com intervalo de seleção
+        st.write("### Filtrar Servidores por Faixa Etária")
+
+        # Valores únicos de idade para o filtro
+        unique_ages = sorted(idade_counts['Idade'].unique())
+        min_age, max_age = min(unique_ages), max(unique_ages)
+
+        # Slider de intervalo de idade
+        selected_age_range = st.slider(
+            "Selecione o intervalo de Idade:",
+            min_value=min_age,
+            max_value=max_age,
+            value=(min_age, max_age),  # Intervalo padrão selecionado
+            step=1,
+            format="%d"
+        )
+
+        # Filtrar a tabela com base na faixa etária selecionada
+        filtered_table = filtered_df[(filtered_df['Idade'] >= selected_age_range[0]) & 
+                                    (filtered_df['Idade'] <= selected_age_range[1])]
+
+        # Ocultar os últimos 4 dígitos do CPF visualmente usando .loc para evitar o aviso
+        filtered_table.loc[:, 'CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
+        
+        # Exibir a tabela apenas se houver uma faixa de idade selecionada
+        if not filtered_table.empty:
+            st.header(f"Servidores com idade entre {selected_age_range[0]} e {selected_age_range[1]}")
+            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].reset_index(drop=True))
+
+            # Contagem de servidores exibidos
+            st.write(f"Total de servidores exibidos: {len(filtered_table)}")
+
+            # Soma do valor total da coluna 'Financ_Valor_Calculado'
+            total_valor = filtered_table['Financ_Valor_Calculado'].sum()
+            st.write(f"Valor total calculado: R$ {total_valor:,.2f}")
+        else:
+            st.write("Nenhum servidor encontrado para o intervalo de idade selecionado.")
 
     # Gráfico 7: Comparação de Funcionários com e sem Função Gratificada
     #st.header('Funcionários com e sem Função Gratificada')
@@ -258,6 +313,33 @@ def run_dashboard():
         )
 
         st.plotly_chart(fig8)
+
+        # Multiselect para selecionar funções específicas
+        selected_funcoes = st.multiselect(
+            'Selecione a(s) Função(ões) para visualizar os servidores:',
+            options=media_salarial_por_funcao['Funcao_Efetiva_Desc'].unique(),
+            help="Escolha uma ou mais funções para exibir a tabela de servidores.",
+            placeholder="Escolha uma opção"
+        )
+
+        # Exibir a tabela se pelo menos uma função for selecionada
+        if selected_funcoes:
+            # Filtrar o DataFrame para as funções selecionadas
+            filtered_table = filtered_df[filtered_df['Funcao_Efetiva_Desc'].isin(selected_funcoes)].copy()
+            
+            # Ocultar os últimos 4 dígitos do CPF visualmente usando .loc para evitar o aviso
+            filtered_table.loc[:, 'CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
+
+            # Exibir a tabela com os servidores filtrados
+            st.header('Servidores por Função Selecionada')
+            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].reset_index(drop=True))
+
+            # Contagem de servidores exibidos
+            st.write(f"Total de servidores exibidos: {len(filtered_table)}")
+
+            # Soma do valor total da coluna 'Financ_Valor_Calculado'
+            total_valor = filtered_table['Financ_Valor_Calculado'].sum()
+            st.write(f"Valor total calculado: R$ {total_valor:,.2f}")
 
     with tab4:
         # Campo de pesquisa por palavra-chave
