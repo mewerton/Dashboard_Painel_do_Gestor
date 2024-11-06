@@ -2,6 +2,7 @@ import streamlit as st
 import locale
 from PIL import Image
 from sidebar import load_sidebar
+from chatbot import render_chatbot  # Importar a função do chatbot
 
 # Tente definir o locale para pt_BR. Se falhar, use o locale padrão do sistema
 try:
@@ -16,6 +17,9 @@ def navigate_to_dashboard(dashboard_name):
 def run_dashboard():
     # Carregar o sidebar com o filtro de UG ou SIGLA para a página inicial
     load_sidebar(None, "Início")
+
+    # Chame o chatbot para renderizar no sidebar
+    render_chatbot()
 
     # Exibir título e imagens de miniaturas
     st.title('Módulos disponíveis')
