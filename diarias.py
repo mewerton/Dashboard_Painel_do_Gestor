@@ -16,6 +16,13 @@ try:
 except locale.Error:
     locale.setlocale(locale.LC_ALL, '')  # Fallback para o locale padrão do sistema
 
+# Função para formatar valores em moeda no padrão brasileiro
+def formatar_valor(valor):
+    """Formatar o valor como moeda no padrão brasileiro."""
+    if pd.notnull(valor):
+        return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return 'R$ 0,00'
+    
 def run_dashboard():
     # Carregar dados usando o módulo centralizado
     df = load_data()
@@ -74,32 +81,41 @@ def run_dashboard():
 
         col3, col4 = st.columns(2)
 
+        # Dicionário para renomear as colunas
+        colunas_exibicao = {
+            'MES': 'Mês',
+            'VALOR_EMPENHADO': 'Valor Empenhado (R$)',
+            'VALOR_PAGO': 'Valor Pago (R$)',
+            'DESCRICAO_NATUREZA': 'Natureza da Despesa'
+        }
+
         with col3:
             df_mensal = df_diarias.groupby('MES')[['VALOR_EMPENHADO', 'VALOR_PAGO']].sum().reset_index()
+            df_mensal = df_mensal.rename(columns=colunas_exibicao)  # Renomear as colunas
             fig_mensal = px.line(
                 df_mensal, 
-                x='MES', 
-                y=['VALOR_EMPENHADO', 'VALOR_PAGO'], 
+                x='Mês', 
+                y=['Valor Empenhado (R$)', 'Valor Pago (R$)'], 
                 title='Evolução Mensal das Diárias',
                 markers=True,  # Adiciona pontos nos dados
                 line_shape='spline',  # Linhas suaves
-                labels={'MES': 'Mês', 'value': 'Valor'},
+                labels={'Mês': 'Mês', 'value': 'Valor'},
                 color_discrete_sequence=['#31356e', '#41b8d5']  # Definindo as cores das linhas
             )
             st.plotly_chart(fig_mensal)
 
         with col4:
             df_categoria = df_diarias.groupby('DESCRICAO_NATUREZA')[['VALOR_EMPENHADO', 'VALOR_PAGO']].sum().reset_index()
+            df_categoria = df_categoria.rename(columns=colunas_exibicao)  # Renomear as colunas
             fig_pizza = px.pie(
                 df_categoria,
-                values='VALOR_PAGO',
-                names='DESCRICAO_NATUREZA',
+                values='Valor Pago (R$)',
+                names='Natureza da Despesa',
                 title='Proporção das Despesas com Diárias',
                 hole=0.4,  # Adiciona um buraco no meio para criar um gráfico de rosca
                 color_discrete_sequence=['#095aa2', '#042b4d']  # Define as cores desejadas
             )
             st.plotly_chart(fig_pizza)
-
 
         # Inicializar variáveis de estado na sessão, se não estiverem definidas
         if 'mostrar_resumo_mensal' not in st.session_state:
@@ -120,34 +136,22 @@ def run_dashboard():
                 st.session_state.mostrar_resumo_categoria = not st.session_state.mostrar_resumo_categoria
 
         # Mostrar as tabelas apenas se o estado da sessão correspondente for verdadeiro
-        # if st.session_state.mostrar_resumo_mensal:
-        #     with col7:
-        #         st.subheader('Resumo Mensal de Despesas com Diárias')
-        #         df_mensal['VALOR_EMPENHADO'] = df_mensal['VALOR_EMPENHADO'].apply(lambda x: locale.currency(x, grouping=True))
-        #         df_mensal['VALOR_PAGO'] = df_mensal['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
-        #         st.dataframe(df_mensal)
-
-        # if st.session_state.mostrar_resumo_categoria:
-        #     with col8:
-        #         st.subheader('Resumo Detalhado por Categoria de Diária')
-        #         df_categoria['VALOR_EMPENHADO'] = df_categoria['VALOR_EMPENHADO'].apply(lambda x: locale.currency(x, grouping=True))
-        #         df_categoria['VALOR_PAGO'] = df_categoria['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
-        #         st.dataframe(df_categoria)
-
-        # Mostrar as tabelas apenas se o estado da sessão correspondente for verdadeiro
         if st.session_state.mostrar_resumo_mensal:
             with col7:
                 st.subheader('Resumo Mensal de Despesas com Diárias')
-                df_mensal['VALOR_EMPENHADO'] = df_mensal['VALOR_EMPENHADO'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
-                df_mensal['VALOR_PAGO'] = df_mensal['VALOR_PAGO'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
+                # Aplicar formatação de moeda
+                df_mensal['Valor Empenhado (R$)'] = df_mensal['Valor Empenhado (R$)'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
+                df_mensal['Valor Pago (R$)'] = df_mensal['Valor Pago (R$)'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
                 st.dataframe(df_mensal)
 
         if st.session_state.mostrar_resumo_categoria:
             with col8:
                 st.subheader('Resumo Detalhado por Categoria de Diária')
-                df_categoria['VALOR_EMPENHADO'] = df_categoria['VALOR_EMPENHADO'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
-                df_categoria['VALOR_PAGO'] = df_categoria['VALOR_PAGO'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
+                # Aplicar formatação de moeda
+                df_categoria['Valor Empenhado (R$)'] = df_categoria['Valor Empenhado (R$)'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
+                df_categoria['Valor Pago (R$)'] = df_categoria['Valor Pago (R$)'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
                 st.dataframe(df_categoria)
+
                 
     with tab2:
 
@@ -161,9 +165,7 @@ def run_dashboard():
         df_total_por_favorecido = df_total_por_favorecido.sort_values(by='VALOR_PAGO', ascending=True)
 
         # Formatar os valores como moeda brasileira
-        #df_total_por_favorecido['VALOR_PAGO_FORMATADO'] = df_total_por_favorecido['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
-        # Formatar os valores como moeda brasileira
-        df_total_por_favorecido['VALOR_PAGO_FORMATADO'] = df_total_por_favorecido['VALOR_PAGO'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
+        df_total_por_favorecido['VALOR_PAGO_FORMATADO'] = df_total_por_favorecido['VALOR_PAGO'].apply(lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else 'R$ 0,00')
 
         # Criar o gráfico de barras horizontais
         fig_favorecido = px.bar(
@@ -177,9 +179,9 @@ def run_dashboard():
             color_discrete_sequence=['#095aa2']  # Define a cor das barras
         )
 
-        # Ajustar o hover para mostrar apenas o nome e o valor formatado
+        # Ajustar o hover para mostrar o nome e o valor formatado
         fig_favorecido.update_traces(
-            hovertemplate='%{y}<br>%{text}<extra></extra>'  # Exibe nome e valor formatado, oculta "extra" info
+            hovertemplate='%{y}<br>Valor Pago: %{text}<extra></extra>'  # Exibe nome e valor formatado
         )
 
         # Ajustar layout e formatação dos valores
@@ -191,6 +193,7 @@ def run_dashboard():
 
         # Exibir o gráfico
         st.plotly_chart(fig_favorecido, use_container_width=True)
+
 
     #===========================================================================================
     with tab3:
@@ -337,73 +340,57 @@ def run_dashboard():
         df_4_5_meses = pd.DataFrame(servidores_4_5_meses_detalhes)
         df_6_ou_mais_meses = pd.DataFrame(servidores_6_ou_mais_meses_detalhes)
 
-    # Formatar o valor total como moeda, se a coluna existir
-        # if not df_3_meses.empty:
-        #     df_3_meses['Valor Total Pago'] = df_3_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
-        # else:
-        #     df_3_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
 
-        # if not df_4_5_meses.empty:
-        #     df_4_5_meses['Valor Total Pago'] = df_4_5_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
-        # else:
-        #     df_4_5_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
 
-        # if not df_6_ou_mais_meses.empty:
-        #     df_6_ou_mais_meses['Valor Total Pago'] = df_6_ou_mais_meses['Valor Total Pago'].apply(lambda x: locale.currency(x, grouping=True))
-        # else:
-        #     df_6_ou_mais_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
-
-        # Formatar o valor total como moeda, se a coluna existir
+        # Aplicar a formatação de moeda no 'Valor Total Pago' em cada DataFrame
         if not df_3_meses.empty:
-            df_3_meses['Valor Total Pago'] = df_3_meses['Valor Total Pago'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
+            df_3_meses['Valor Total Pago'] = df_3_meses['Valor Total Pago'].apply(formatar_valor)
         else:
             df_3_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
 
         if not df_4_5_meses.empty:
-            df_4_5_meses['Valor Total Pago'] = df_4_5_meses['Valor Total Pago'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
+            df_4_5_meses['Valor Total Pago'] = df_4_5_meses['Valor Total Pago'].apply(formatar_valor)
         else:
             df_4_5_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
 
         if not df_6_ou_mais_meses.empty:
-            df_6_ou_mais_meses['Valor Total Pago'] = df_6_ou_mais_meses['Valor Total Pago'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
+            df_6_ou_mais_meses['Valor Total Pago'] = df_6_ou_mais_meses['Valor Total Pago'].apply(formatar_valor)
         else:
             df_6_ou_mais_meses = pd.DataFrame([{'Nome do Servidor': '-', 'Valor Total Pago': '-'}])  # Tabela vazia
 
-
-    # Exibir as tabelas
+        # Exibir as tabelas
         st.markdown("### Tabelas dos Servidores que recebem Diárias Consecutivas")
         col9, col10, col11 = st.columns(3)
 
         with col9:
-            st.subheader('Nos 3 Útimos Meses')
+            st.subheader('Nos 3 Últimos Meses')
             st.dataframe(df_3_meses)
 
         with col10:
-            st.subheader('Nos 4 a 5 Útimos Meses')
+            st.subheader('Nos 4 a 5 Últimos Meses')
             st.dataframe(df_4_5_meses)
 
         with col11:
-            st.subheader('Nos 6 Meses Útimos Meses ou Mais')
+            st.subheader('Nos 6 Últimos Meses ou Mais')
             st.dataframe(df_6_ou_mais_meses)
 
     with tab4:
         #====== Adicionar a tabela de Favorecidos das Diárias com filtro por palavra-chave e cálculo do valor total filtrado
         st.subheader('Favorecidos das Diárias')
 
-    
-    # Campo de entrada para a palavra-chave de pesquisa
+        # Campo de entrada para a palavra-chave de pesquisa
         keyword = st.text_input('Digite uma palavra-chave para filtrar a tabela:')
 
-    # Inicializar uma variável para controlar a exibição da tabela
+        # Inicializar uma variável para controlar a exibição da tabela
         mostrar_tabela = False
 
-    # Agrupar os dados de favorecidos
+        # Agrupar os dados de favorecidos
         df_favorecidos = df_diarias.groupby(['CODIGO_FAVORECIDO','NOME_FAVORECIDO', 'DESCRICAO_NATUREZA', 'COD_PROCESSO', 'NOTA_EMPENHO', 'OBSERVACAO_NE', 'MES', 'ANO']).agg({'VALOR_PAGO': 'sum'}).reset_index()
 
-    # Criar a coluna 'Período' com o formato 'MM/AAAA'
-        df_favorecidos['Período'] = df_favorecidos['ANO'].astype(str) + '/' +  df_favorecidos['MES'].astype(str).str.zfill(2) 
+        # Criar a coluna 'Período' com o formato 'MM/AAAA'
+        df_favorecidos['Período'] = df_favorecidos['ANO'].astype(str) + '/' +  df_favorecidos['MES'].astype(str).str.zfill(2)
 
-    # Renomear colunas e reordenar
+        # Renomear colunas e reordenar
         df_favorecidos = df_favorecidos.rename(columns={
             'CODIGO_FAVORECIDO':'CPF do Favorecido',
             'NOME_FAVORECIDO': 'Favorecido',
@@ -414,26 +401,33 @@ def run_dashboard():
             'OBSERVACAO_NE': 'Observação'
         })[['CPF do Favorecido','Favorecido', 'Natureza', 'Valor Pago', 'Período', 'Código do Processo', 'Nota de Empenho', 'Observação']]
 
-    # Se o usuário digitou algo no campo de pesquisa, mostrar a tabela com o filtro
+        # Aplicar máscara de CPF na coluna `CPF do Favorecido`
+        df_favorecidos['CPF do Favorecido'] = df_favorecidos['CPF do Favorecido'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
+
+        # Se o usuário digitou algo no campo de pesquisa, mostrar a tabela com o filtro
         if keyword:
             df_favorecidos = df_favorecidos[df_favorecidos.apply(lambda row: row.astype(str).str.contains(keyword, case=False).any(), axis=1)]
             mostrar_tabela = True  # Sempre mostrar a tabela ao pesquisar
 
-    # Se o usuário não digitou nada, mostrar o botão para exibir a tabela completa
+        # Se o usuário não digitou nada, mostrar o botão para exibir a tabela completa
         if not keyword:
             if st.button('Exibir tudo'):
                 mostrar_tabela = True  # Mostrar a tabela ao clicar no botão
 
-    # Calcular o valor total das linhas filtradas
+        # Calcular o valor total das linhas filtradas
         valor_total_filtrado = df_favorecidos['Valor Pago'].sum()
 
-    # Exibir a tabela apenas se a variável mostrar_tabela for True
-        if mostrar_tabela:
-        # Exibir a tabela
-            st.dataframe(df_favorecidos.style.format({'Valor Pago': 'R$ {:,.2f}'}))
+        # Aplicar a formatação de moeda na coluna 'Valor Pago' usando a função formatar_valor
+        df_favorecidos['Valor Pago'] = df_favorecidos['Valor Pago'].apply(formatar_valor)
 
-        # Exibir o valor total das linhas filtradas
-            st.markdown(f"**Valor total pago das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
+        # Exibir a tabela apenas se a variável mostrar_tabela for True
+        if mostrar_tabela:
+            # Exibir a tabela
+            st.dataframe(df_favorecidos)
+
+            # Exibir o valor total das linhas filtradas com formatação de moeda
+            st.markdown(f"**Valor total pago das linhas filtradas:** {formatar_valor(valor_total_filtrado)}")
+
 
 
 
