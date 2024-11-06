@@ -11,6 +11,23 @@ from chatbot import render_chatbot  # Importar a função do chatbot
 # Configurar o locale para português do Brasil
 #locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
+# Dicionário para renomear as colunas para exibição
+colunas_exibicao = {
+    'Nome_Funcionario': 'Nome do Funcionário',
+    'CPF': 'CPF',
+    'Funcao_Efetiva_Desc': 'Função',
+    'Setor_Desc': 'Setor',
+    'Carga_Horaria': 'Carga Horária',
+    'Financ_Valor_Calculado': 'Valor Calculado (R$)'
+}
+
+# Função para formatar valores em Real
+def formatar_valores(df):
+    df['Financ_Valor_Calculado'] = df['Financ_Valor_Calculado'].apply(
+        lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    )
+    return df
+
 # Tente definir o locale para pt_BR. Se falhar, use o locale padrão do sistema
 try:
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -73,55 +90,39 @@ def run_dashboard():
     # Exibir as métricas
     #st.title('Dashboard de Servidores')
     
-     # Dividindo em abas
+    # Dividindo em abas
     tab1, tab2, tab3, tab4 = st.tabs(["Instrução", "Idade/Verbas", "Salários","Pesquisa"])
 
     with tab1:
-
         # Gráficos 1 e 2 em uma linha
-        col1, col2 = st.columns([4,1])
+        col1, col2 = st.columns([4, 1])
 
         # Gráfico de Distribuição por Grau de Instrução, agrupado por Sexo
         with col1:
-            # Agrupar os dados por Grau de Instrução e Sexo para contar a quantidade
             grau_instrucao_sexo_counts = filtered_df.groupby(['Grau_Instrucao_Desc', 'Sexo_Desc']).size().reset_index(name='Quantidade')
-
-            # Calcular a soma total por Grau de Instrução para ordenar
             total_counts = grau_instrucao_sexo_counts.groupby('Grau_Instrucao_Desc')['Quantidade'].sum().reset_index()
             total_counts = total_counts.sort_values(by='Quantidade', ascending=False)
-
-            # Ordenar o DataFrame principal com base na ordem desejada do Grau de Instrução
-            grau_instrucao_sexo_counts['Grau_Instrucao_Desc'] = pd.Categorical(
-                grau_instrucao_sexo_counts['Grau_Instrucao_Desc'], 
-                categories=total_counts['Grau_Instrucao_Desc'],
-                ordered=True
-            )
+            grau_instrucao_sexo_counts['Grau_Instrucao_Desc'] = pd.Categorical(grau_instrucao_sexo_counts['Grau_Instrucao_Desc'], categories=total_counts['Grau_Instrucao_Desc'], ordered=True)
             grau_instrucao_sexo_counts = grau_instrucao_sexo_counts.sort_values('Grau_Instrucao_Desc')
-
-            # Criar o gráfico de barras agrupadas
+            
             fig1 = px.bar(
                 grau_instrucao_sexo_counts,
                 x='Grau_Instrucao_Desc',
                 y='Quantidade',
-                color='Sexo_Desc',  # Diferenciar as barras por sexo
+                color='Sexo_Desc',
                 title="Distribuição por Grau de Instrução e Sexo",
                 labels={'Grau_Instrucao_Desc': 'Grau de Instrução', 'Quantidade': 'Quantidade'},
-                color_discrete_sequence=['#F1C40F', '#9B59B6'],  # Cores especificadas para cada sexo
-                barmode='group'  # Agrupar as barras para cada nível de instrução
+                color_discrete_sequence=['#F1C40F', '#9B59B6'],
+                barmode='group'
             )
-
-            # Ajustar layout e hover
-            fig1.update_traces(texttemplate='%{y}', textposition='outside')  # Exibe quantidade no topo das barras
+            fig1.update_traces(texttemplate='%{y}', textposition='outside')
             fig1.update_layout(
                 xaxis_title="Grau de Instrução",
                 yaxis_title="Quantidade",
                 hovermode="x",
                 showlegend=False,
-                height=600,  # Aumenta a altura do gráfico (você pode ajustar conforme necessário)
-                legend_tracegroupgap=0
+                height=600
             )
-
-            # Exibir o gráfico no dashboard
             st.plotly_chart(fig1)
 
         with col2:
@@ -133,18 +134,11 @@ def run_dashboard():
                 opacity=0.9,
                 hole=0.3
             )
-
-            # Ajustar cores para setores de pizza em tons de roxo
-            fig2.update_traces(marker=dict(
-                colors=['#F1C40F', '#9B59B6'],  # Cores roxas contrastantes
-            ))
-            
-                # Configurar o hovertemplate para exibir "Sexo" e "Total"
+            fig2.update_traces(marker=dict(colors=['#F1C40F', '#9B59B6']))
             fig2.update_traces(hovertemplate='%{label}<br>Total: %{value}')
-            fig2.update_layout(showlegend=False)  # Remover a legenda
-
+            fig2.update_layout(showlegend=False)
             st.plotly_chart(fig2)
-        
+            
         # Multiselect para escolher graus de instrução
         selected_graus = st.multiselect(
             'Selecione o(s) Grau(s) de Instrução para visualizar servidores:',
@@ -153,24 +147,28 @@ def run_dashboard():
             placeholder="Escolha uma opção"
         )
 
-        # Mostrar tabela apenas se pelo menos um Grau de Instrução estiver selecionado
         if selected_graus:
-            # Filtrar o DataFrame para os Graus de Instrução selecionados
             filtered_table = filtered_df[filtered_df['Grau_Instrucao_Desc'].isin(selected_graus)].copy()
-
-            # Ocultar os últimos 4 dígitos do CPF visualmente
             filtered_table['CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
-
-            # Exibir a tabela com os servidores filtrados por Grau de Instrução
+            filtered_table = formatar_valores(filtered_table)
+            
             st.header('Servidores por Grau de Instrução Selecionado')
-            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].reset_index(drop=True))
-
-            # Contagem de servidores exibidos
+            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao))
+            
             st.write(f"Total de servidores exibidos: {len(filtered_table)}")
-
             # Soma do valor total da coluna 'Financ_Valor_Calculado'
-            total_valor = filtered_table['Financ_Valor_Calculado'].sum()
-            st.write(f"Valor total calculado: R$ {total_valor:,.2f}")
+            # Remover o símbolo "R$ " e aplicar o formato adequado para conversão
+            total_valor = (
+                filtered_table['Financ_Valor_Calculado']
+                .str.replace('R\$', '', regex=True)  # Remover o símbolo "R$" usando regex
+                .str.replace('.', '', regex=False)   # Remover pontos (separador de milhares)
+                .str.replace(',', '.', regex=False)  # Converter vírgula para ponto (para formato float)
+                .astype(float)
+                .sum()
+            )
+
+            # Exibir o valor total formatado em reais
+            st.write(f"Valor total calculado: R$ {total_valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
     with tab2:
         # Gráficos 3 e 4 em uma linha
@@ -254,34 +252,42 @@ def run_dashboard():
             format="%d"
         )
 
-        # Filtrar a tabela com base na faixa etária selecionada
-        filtered_table = filtered_df[(filtered_df['Idade'] >= selected_age_range[0]) & 
-                                    (filtered_df['Idade'] <= selected_age_range[1])]
+        # Filtrar a tabela com base na faixa etária selecionada e garantir que seja uma cópia
+        filtered_table = filtered_df.loc[
+            (filtered_df['Idade'] >= selected_age_range[0]) & 
+            (filtered_df['Idade'] <= selected_age_range[1])
+        ].copy()  # Adiciona `.copy()` para evitar o erro
 
-        # Ocultar os últimos 4 dígitos do CPF visualmente usando .loc para evitar o aviso
-        filtered_table.loc[:, 'CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
-        
-        # Exibir a tabela apenas se houver uma faixa de idade selecionada
+        # Ocultar os últimos 4 dígitos do CPF e formatar a coluna `Financ_Valor_Calculado`
+        filtered_table['CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
+
+        # Aplicar a formatação de valores em Real e renomear as colunas para exibição
+        formatar_valores(filtered_table)
+    
+        # Exibir a tabela formatada apenas se houver uma faixa de idade selecionada
         if not filtered_table.empty:
             st.header(f"Servidores com idade entre {selected_age_range[0]} e {selected_age_range[1]}")
-            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].reset_index(drop=True))
+            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao))
 
             # Contagem de servidores exibidos
             st.write(f"Total de servidores exibidos: {len(filtered_table)}")
 
             # Soma do valor total da coluna 'Financ_Valor_Calculado'
-            total_valor = filtered_table['Financ_Valor_Calculado'].sum()
-            st.write(f"Valor total calculado: R$ {total_valor:,.2f}")
+            # Remover o símbolo "R$ " e aplicar o formato adequado para conversão
+            total_valor = (
+                filtered_table['Financ_Valor_Calculado']
+                .str.replace('R\$', '', regex=True)  # Remover o símbolo "R$" usando regex
+                .str.replace('.', '', regex=False)   # Remover pontos (separador de milhares)
+                .str.replace(',', '.', regex=False)  # Converter vírgula para ponto (para formato float)
+                .astype(float)
+                .sum()
+            )
+
+            # Exibir o valor total formatado em reais
+            st.write(f"Valor total calculado: R$ {total_valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
         else:
             st.write("Nenhum servidor encontrado para o intervalo de idade selecionado.")
 
-    # Gráfico 7: Comparação de Funcionários com e sem Função Gratificada
-    #st.header('Funcionários com e sem Função Gratificada')
-    # funcao_gratificada_counts = filtered_df['Funcao_Gratificada_Comissao_Desc'].value_counts().reset_index()
-    # funcao_gratificada_counts.columns = ['Função Gratificada', 'Contagem']
-    # fig7 = px.bar(funcao_gratificada_counts, x='Função Gratificada', y='Contagem', 
-    #               title='Funcionários com e sem Função Gratificada')
-    # st.plotly_chart(fig7)
 
     with tab3:
         # Gráfico de Média Salarial por Função
@@ -329,17 +335,31 @@ def run_dashboard():
             
             # Ocultar os últimos 4 dígitos do CPF visualmente usando .loc para evitar o aviso
             filtered_table.loc[:, 'CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
+            
+            # Aplicar a formatação de valores em Real e renomear as colunas para exibição
+            formatar_valores(filtered_table)
 
-            # Exibir a tabela com os servidores filtrados
+            # Exibir a tabela com os servidores filtrados e colunas renomeadas
             st.header('Servidores por Função Selecionada')
-            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].reset_index(drop=True))
+            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao))
 
             # Contagem de servidores exibidos
             st.write(f"Total de servidores exibidos: {len(filtered_table)}")
 
             # Soma do valor total da coluna 'Financ_Valor_Calculado'
-            total_valor = filtered_table['Financ_Valor_Calculado'].sum()
-            st.write(f"Valor total calculado: R$ {total_valor:,.2f}")
+            # Remover o símbolo "R$ " e aplicar o formato adequado para conversão
+            total_valor = (
+                filtered_table['Financ_Valor_Calculado']
+                .str.replace('R\$', '', regex=True)  # Remover o símbolo "R$" usando regex
+                .str.replace('.', '', regex=False)   # Remover pontos (separador de milhares)
+                .str.replace(',', '.', regex=False)  # Converter vírgula para ponto (para formato float)
+                .astype(float)
+                .sum()
+            )
+
+            # Exibir o valor total formatado em reais
+            st.write(f"Valor total calculado: R$ {total_valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+
 
     with tab4:
         # Campo de pesquisa por palavra-chave
@@ -357,16 +377,30 @@ def run_dashboard():
         # Ocultar os últimos 4 dígitos do CPF visualmente
         filtered_table['CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
 
-        # Exibir a tabela com os servidores filtrados
+        # Aplicar a formatação de valores em Real e renomear as colunas para exibição
+        formatar_valores(filtered_table)
+
+        # Exibir a tabela com os servidores filtrados e colunas renomeadas
         st.header('Servidores da Unidade Selecionada')
-        st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].reset_index(drop=True))
+        st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao).reset_index(drop=True))
 
         # Contagem de servidores exibidos
         st.write(f"Total de servidores exibidos: {len(filtered_table)}")
 
         # Soma do valor total da coluna 'Financ_Valor_Calculado'
-        total_valor = filtered_table['Financ_Valor_Calculado'].sum()
-        st.write(f"Valor total calculado: R$ {total_valor:,.2f}")
+        # Remover o símbolo "R$ " e aplicar o formato adequado para conversão
+        total_valor = (
+            filtered_table['Financ_Valor_Calculado']
+            .str.replace('R\$', '', regex=True)  # Remover o símbolo "R$" usando regex
+            .str.replace('.', '', regex=False)   # Remover pontos (separador de milhares)
+            .str.replace(',', '.', regex=False)  # Converter vírgula para ponto (para formato float)
+            .astype(float)
+            .sum()
+        )
+
+        # Exibir o valor total formatado em reais
+        st.write(f"Valor total calculado: R$ {total_valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+   
 
 if __name__ == "__main__":
     run_dashboard()
