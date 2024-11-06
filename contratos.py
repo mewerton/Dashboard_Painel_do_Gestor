@@ -15,6 +15,19 @@ try:
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 except locale.Error:
     locale.setlocale(locale.LC_ALL, '')  # Fallback para o locale padrão do sistema
+
+# Dicionário para renomear as colunas para exibição
+colunas_exibicao = {
+    'CODIGO_CONTRATO': 'Código do Contrato',
+    'UG': 'Unidade Gestora',
+    'NOME_CONTRATANTE': 'Contratante',
+    'NOME_CONTRATADA': 'Contratada',
+    'VALOR_TOTAL': 'Valor Total (R$)',
+    'NOME_CONTRATO': 'Nome do Contrato',
+    'DATA_INICIO_VIGENCIA': 'Início da Vigência',
+    'DATA_FIM_VIGENCIA': 'Fim da Vigência',
+    'DSC_SITUACAO': 'Situação'
+}
     
 def run_dashboard():
     # Carregar os datasets de contratos e aditivos usando o data_loader
@@ -192,15 +205,20 @@ def run_dashboard():
             filtered_table['DATA_INICIO_VIGENCIA'] = formatar_data(filtered_table['DATA_INICIO_VIGENCIA'])
             filtered_table['DATA_FIM_VIGENCIA'] = formatar_data(filtered_table['DATA_FIM_VIGENCIA'])
 
-            # Exibir tabela de contratos filtrados
+            # Exibir tabela de contratos filtrados com títulos renomeados
             st.header('Contratos por Tipo de Licitação Selecionado')
-            st.write(filtered_table[['CODIGO_CONTRATO', 'UG', 'NOME_CONTRATANTE', 'NOME_CONTRATADA', 'VALOR_TOTAL', 'NOME_CONTRATO', 'DATA_INICIO_VIGENCIA', 'DATA_FIM_VIGENCIA', 'DSC_SITUACAO']].reset_index(drop=True))
+            st.write(
+                filtered_table[['CODIGO_CONTRATO', 'UG', 'NOME_CONTRATANTE', 'NOME_CONTRATADA', 'VALOR_TOTAL', 
+                                'NOME_CONTRATO', 'DATA_INICIO_VIGENCIA', 'DATA_FIM_VIGENCIA', 'DSC_SITUACAO']]
+                .rename(columns=colunas_exibicao).reset_index(drop=True)
+            )
 
             st.write(f"Total de contratos exibidos: {len(filtered_table)}")
 
             # Calcular e exibir o valor total dos contratos filtrados
             total_valor_contratos = filtered_table['VALOR_TOTAL'].str.replace('R$ ', '').str.replace('.', '').str.replace(',', '.').astype(float).sum()
             st.write(f"Valor total dos contratos exibidos: {formatar_valor(total_valor_contratos)}")
+
 
     with tab3:
         # Aplicar formatações de valores, números e datas na aba de visualização completa de contratos
@@ -216,7 +234,8 @@ def run_dashboard():
         if keyword:
             df_contratos = df_contratos[df_contratos.apply(lambda row: row.astype(str).str.contains(keyword, case=False).any(), axis=1)]
 
-        st.write(df_contratos[['CODIGO_CONTRATO', 'UG', 'NOME_CONTRATANTE', 'NOME_CONTRATADA', 'VALOR_TOTAL','NOME_CONTRATO', 'DATA_INICIO_VIGENCIA', 'DATA_FIM_VIGENCIA', 'DSC_SITUACAO']])
+        # Exibir DataFrame com títulos renomeados
+        st.write(df_contratos[['CODIGO_CONTRATO', 'UG', 'NOME_CONTRATANTE', 'NOME_CONTRATADA', 'VALOR_TOTAL', 'NOME_CONTRATO', 'DATA_INICIO_VIGENCIA', 'DATA_FIM_VIGENCIA', 'DSC_SITUACAO']].rename(columns=colunas_exibicao))
 
         if df_aditivos is not None:
             df_aditivos_filtrados = df_aditivos[df_aditivos['COD_CONTRATO'].isin(df_contratos['CODIGO_CONTRATO'].astype(int))].copy()
@@ -227,10 +246,11 @@ def run_dashboard():
             df_aditivos_filtrados['DATA_PUBLICACAO'] = formatar_data(df_aditivos_filtrados['DATA_PUBLICACAO'])
 
             st.subheader('Aditivos e Reajustes dos Contratos Exibidos')
-            st.write(df_aditivos_filtrados[['COD_CONTRATO', 'TIPO', 'NUM_ORIGINAL', 'NUM_PROCESSO', 'DATA_VIGENCIA_INICIAL', 'DATA_VIGENCIA_FINAL', 'DATA_PUBLICACAO', 'VALOR_FORMATADO', 'DSC_OBJETO']])
+            st.write(df_aditivos_filtrados[['COD_CONTRATO', 'TIPO', 'NUM_ORIGINAL', 'NUM_PROCESSO', 'DATA_VIGENCIA_INICIAL', 'DATA_VIGENCIA_FINAL', 'DATA_PUBLICACAO', 'VALOR_FORMATADO', 'DSC_OBJETO']].rename(columns=colunas_exibicao))
 
             valor_total_aditivos = df_aditivos_filtrados['VALOR'].sum()
             st.markdown(f"**Valor total dos Aditivos/Reajustes filtrados: {formatar_valor(valor_total_aditivos)}**")
+
 
 
 
