@@ -1,5 +1,6 @@
 import streamlit as st
 import locale
+import base64
 from PIL import Image
 from sidebar import load_sidebar
 from chatbot import render_chatbot  # Importar a função do chatbot
@@ -26,10 +27,10 @@ def run_dashboard():
 
     # Carregar as imagens das miniaturas
     image_paths = {
-        "Despesas Detalhado": "src/assets/despesas_capa.png",
-        "Diárias": "src/assets/diarias_capa.png",
-        "Contratos": "src/assets/contratos_capa.png",
-        "Servidores": "src/assets/servidores_capa.png"
+        "Despesas Detalhado": "src/assets/despesas_capab.png",
+        "Diárias": "src/assets/diarias_capab.png",
+        "Contratos": "src/assets/contratos_capab.png",
+        "Servidores": "src/assets/servidores_capab.png"
     }
 
     # Lista de dashboards para correspondência com o sidebar
@@ -39,12 +40,17 @@ def run_dashboard():
     cols = st.columns(4)
     for i, dashboard in enumerate(dashboards):
         with cols[i]:
+            # Carregar a imagem e convertê-la para Base64 para evitar a expansão
             image = Image.open(image_paths[dashboard])
-            st.image(image, use_column_width=True)
+            with open(image_paths[dashboard], "rb") as file:
+                image_data = file.read()
+                encoded_image = base64.b64encode(image_data).decode()
             
-            # Botão para navegar ao dashboard selecionado
-            # if st.button(f"Acessar {dashboard}", key=dashboard):
-            #     navigate_to_dashboard(dashboard)  # Sincroniza com a navegação do sidebar
+            # Exibir a imagem com HTML para desativar a expansão
+            st.markdown(
+                f'<img src="data:image/png;base64,{encoded_image}" style="width:100%;height:auto;" alt="{dashboard}">',
+                unsafe_allow_html=True
+            )
             
             st.write(dashboard)
 
