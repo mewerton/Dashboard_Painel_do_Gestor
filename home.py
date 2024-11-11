@@ -22,15 +22,22 @@ def run_dashboard():
     # Chame o chatbot para renderizar no sidebar
     render_chatbot()
 
-    # Exibir título e imagens de miniaturas
+    # Exibir título da página
     st.title('Módulos disponíveis')
 
-    # Carregar as imagens das miniaturas
+    # Carregar as imagens das miniaturas e textos explicativos
     image_paths = {
         "Despesas Detalhado": "src/assets/despesas_capab.png",
         "Diárias": "src/assets/diarias_capab.png",
         "Contratos": "src/assets/contratos_capab.png",
         "Servidores": "src/assets/servidores_capab.png"
+    }
+    
+    dashboard_texts = {
+        "Despesas Detalhado": "Painel detalhado com dados sobre despesas realizadas, oferecendo insights por mês e ano.",
+        "Diárias": "Visualização das diárias pagas aos servidores, incluindo análises por unidade e períodos.",
+        "Contratos": "Monitoramento de contratos ativos, com indicadores de valores e prazos para acompanhamento.",
+        "Servidores": "Painel com dados dos servidores, permitindo análise de informações de folha de pagamento."
     }
 
     # Lista de dashboards para correspondência com o sidebar
@@ -52,7 +59,11 @@ def run_dashboard():
                 unsafe_allow_html=True
             )
             
-            st.write(dashboard)
+            # Título centralizado
+            st.markdown(f"<h4 style='text-align: center;'>{dashboard}</h4>", unsafe_allow_html=True)
+            
+            # Texto explicativo abaixo do título
+            st.write(dashboard_texts[dashboard])
 
 # Inicializar a sessão, se necessário
 if "selected_page" not in st.session_state:
