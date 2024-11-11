@@ -6,6 +6,8 @@ import locale
 from sidebar import load_sidebar
 from data_loader import load_data
 from chatbot import render_chatbot  # Importar a função do chatbot
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 
 # Configurar o locale para português do Brasil
 #locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -33,6 +35,11 @@ def run_dashboard():
 
     # Carregar o sidebar
     selected_ugs_despesas, selected_ano, selected_mes = load_sidebar(df, "diarias")
+    
+    # Verificar se nenhuma UG foi selecionada
+    if not selected_ugs_despesas:
+        st.warning("Nenhuma UG selecionada. Por favor, selecione uma UG para visualizar os dados.")
+        return  # Encerra a função aqui se nenhuma UG foi selecionada
     
     # Chame o chatbot para renderizar no sidebar
     render_chatbot()
@@ -485,6 +492,24 @@ def run_dashboard():
             st.plotly_chart(fig_outras_ugs)
         else:
             st.write('Nenhum servidor recebeu diárias de outras UGs além da UG filtrada.')
+
+        # Filtrar as observações para a coluna 'Observação'
+        observacoes_texto = ' '.join(df_favorecidos['Observação'].dropna())
+
+        # Gerar a nuvem de palavras com uma resolução mais alta e cores destacadas para fundo escuro
+        wordcloud = WordCloud(width=1600, height=800, background_color=None, mode='RGBA', colormap='plasma').generate(observacoes_texto)
+
+        # Exibir a nuvem de palavras usando matplotlib com ajuste de DPI e tamanho
+        st.subheader("Nuvem de Palavras das Observações")
+        fig, ax = plt.subplots(figsize=(16, 8), dpi=300)  # Aumentar o DPI e o tamanho da figura para melhor qualidade
+
+        # Adicionar o fundo cinza com 95% de transparência
+        fig.patch.set_facecolor((0.5, 0.5, 0.5, 0.05))  # Cor cinza com 95% de transparência
+
+        # Renderizar a nuvem de palavras sobre o fundo
+        ax.imshow(wordcloud, interpolation='bilinear')
+        ax.axis("off")
+        st.pyplot(fig)
 
 if __name__ == "__main__":
     run_dashboard()
