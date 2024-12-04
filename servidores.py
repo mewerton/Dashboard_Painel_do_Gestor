@@ -95,7 +95,7 @@ def run_dashboard():
 
     with tab1:
         # Gráficos 1 e 2 em uma linha
-        col1, col2 = st.columns([4, 1])
+        col1, col2 = st.columns([3, 1])
 
         # Gráfico de Distribuição por Grau de Instrução, agrupado por Sexo
         with col1:
@@ -112,7 +112,7 @@ def run_dashboard():
                 color='Sexo_Desc',
                 title="Distribuição por Grau de Instrução e Sexo",
                 labels={'Grau_Instrucao_Desc': 'Grau de Instrução', 'Quantidade': 'Quantidade'},
-                color_discrete_sequence=['#F1C40F', '#9B59B6'],
+                color_discrete_sequence=['#9B59B6', '#F1C40F'],
                 barmode='group'
             )
             fig1.update_traces(texttemplate='%{y}', textposition='outside')
@@ -134,7 +134,7 @@ def run_dashboard():
                 opacity=0.9,
                 hole=0.3
             )
-            fig2.update_traces(marker=dict(colors=['#F1C40F', '#9B59B6']))
+            fig2.update_traces(marker=dict(colors=['#9B59B6', '#F1C40F ']))
             fig2.update_traces(hovertemplate='%{label}<br>Total: %{value}')
             fig2.update_layout(showlegend=False)
             st.plotly_chart(fig2)
@@ -368,39 +368,43 @@ def run_dashboard():
         # Filtrar DataFrame baseado no termo de pesquisa (case-insensitive)
         if search_term:
             filtered_table = filtered_df[
-                filtered_df['Nome_Funcionario'].str.contains(search_term, case=False, na=False) | 
-                filtered_df['CPF'].str.contains(search_term, case=False, na=False)
+                filtered_df['Nome_Funcionario'].astype(str).str.contains(search_term, case=False, na=False) |
+                filtered_df['CPF'].astype(str).str.contains(search_term, case=False, na=False)
             ].copy()  # Adiciona .copy() para evitar o alerta
         else:
             filtered_table = filtered_df.copy()  # Adiciona .copy() para manter consistência
 
-        # Ocultar os últimos 4 dígitos do CPF visualmente
-        filtered_table['CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
+        # Verificar se o resultado da pesquisa está vazio
+        if filtered_table.empty:
+            st.warning("Nenhum dado encontrado com o termo de pesquisa informado.")
+        else:
+            # Ocultar os últimos 4 dígitos do CPF visualmente
+            filtered_table['CPF'] = filtered_table['CPF'].apply(lambda x: x[:-4] + '****' if pd.notnull(x) else x)
 
-        # Aplicar a formatação de valores em Real e renomear as colunas para exibição
-        formatar_valores(filtered_table)
+            # Aplicar a formatação de valores em Real e renomear as colunas para exibição
+            formatar_valores(filtered_table)
 
-        # Exibir a tabela com os servidores filtrados e colunas renomeadas
-        st.header('Servidores da Unidade Selecionada')
-        st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao).reset_index(drop=True))
+            # Exibir a tabela com os servidores filtrados e colunas renomeadas
+            st.header('Servidores da Unidade Selecionada')
+            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao).reset_index(drop=True))
 
-        # Contagem de servidores exibidos
-        st.write(f"Total de servidores exibidos: {len(filtered_table)}")
+            # Contagem de servidores exibidos
+            st.write(f"Total de servidores exibidos: {len(filtered_table)}")
 
-        # Soma do valor total da coluna 'Financ_Valor_Calculado'
-        # Remover o símbolo "R$ " e aplicar o formato adequado para conversão
-        total_valor = (
-            filtered_table['Financ_Valor_Calculado']
-            .str.replace('R\$', '', regex=True)  # Remover o símbolo "R$" usando regex
-            .str.replace('.', '', regex=False)   # Remover pontos (separador de milhares)
-            .str.replace(',', '.', regex=False)  # Converter vírgula para ponto (para formato float)
-            .astype(float)
-            .sum()
-        )
+            # Soma do valor total da coluna 'Financ_Valor_Calculado'
+            # Remover o símbolo "R$ " e aplicar o formato adequado para conversão
+            total_valor = (
+                filtered_table['Financ_Valor_Calculado']
+                .str.replace('R\$', '', regex=True)  # Remover o símbolo "R$" usando regex
+                .str.replace('.', '', regex=False)   # Remover pontos (separador de milhares)
+                .str.replace(',', '.', regex=False)  # Converter vírgula para ponto (para formato float)
+                .astype(float)
+                .sum()
+            )
 
-        # Exibir o valor total formatado em reais
-        st.write(f"Valor total calculado: R$ {total_valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
-   
+            # Exibir o valor total formatado em reais
+            st.write(f"Valor total calculado: R$ {total_valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+
 
 if __name__ == "__main__":
     run_dashboard()
