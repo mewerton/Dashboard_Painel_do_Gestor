@@ -15,7 +15,9 @@ from chatbot import render_chatbot  # Importar a função do chatbot
 colunas_exibicao = {
     'Nome_Funcionario': 'Nome do Funcionário',
     'CPF': 'CPF',
-    'Funcao_Efetiva_Desc': 'Função',
+    'Vinculo_Desc' : 'Vínculo',
+    'Funcao_Efetiva_Desc': 'Função Efetiva',
+    'Funcao_Gratificada_Comissao_Desc' : 'Função Comissionada',
     'Setor_Desc': 'Setor',
     'Carga_Horaria': 'Carga Horária',
     'Financ_Valor_Calculado': 'Valor Calculado (R$)'
@@ -153,7 +155,7 @@ def run_dashboard():
             filtered_table = formatar_valores(filtered_table)
             
             st.header('Servidores por Grau de Instrução Selecionado')
-            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao))
+            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Vinculo_Desc', 'Funcao_Efetiva_Desc', 'Funcao_Gratificada_Comissao_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao))
             
             st.write(f"Total de servidores exibidos: {len(filtered_table)}")
             # Soma do valor total da coluna 'Financ_Valor_Calculado'
@@ -267,7 +269,7 @@ def run_dashboard():
         # Exibir a tabela formatada apenas se houver uma faixa de idade selecionada
         if not filtered_table.empty:
             st.header(f"Servidores com idade entre {selected_age_range[0]} e {selected_age_range[1]}")
-            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao))
+            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Vinculo_Desc', 'Funcao_Efetiva_Desc', 'Funcao_Gratificada_Comissao_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao))
 
             # Contagem de servidores exibidos
             st.write(f"Total de servidores exibidos: {len(filtered_table)}")
@@ -341,7 +343,7 @@ def run_dashboard():
 
             # Exibir a tabela com os servidores filtrados e colunas renomeadas
             st.header('Servidores por Função Selecionada')
-            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao))
+            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Vinculo_Desc', 'Funcao_Efetiva_Desc', 'Funcao_Gratificada_Comissao_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao))
 
             # Contagem de servidores exibidos
             st.write(f"Total de servidores exibidos: {len(filtered_table)}")
@@ -386,7 +388,7 @@ def run_dashboard():
 
             # Exibir a tabela com os servidores filtrados e colunas renomeadas
             st.header('Servidores da Unidade Selecionada')
-            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Funcao_Efetiva_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao).reset_index(drop=True))
+            st.write(filtered_table[['Nome_Funcionario', 'CPF', 'Vinculo_Desc', 'Funcao_Efetiva_Desc', 'Funcao_Gratificada_Comissao_Desc', 'Setor_Desc', 'Carga_Horaria', 'Financ_Valor_Calculado']].rename(columns=colunas_exibicao).reset_index(drop=True))
 
             # Contagem de servidores exibidos
             st.write(f"Total de servidores exibidos: {len(filtered_table)}")
