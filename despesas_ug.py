@@ -98,8 +98,8 @@ def run_dashboard():
 
         col1, col2 = st.columns(2)
 
-        col1.metric("Quantidade de Despesas", quantidade_despesas)
-        col2.metric("Valor Total", valor_total_formatado)
+        #col1.metric("Quantidade de Despesas", quantidade_despesas)
+        col1.metric("Valor Total", valor_total_formatado)
 
     # Gráfico de Setores: Despesas por Função
         col5, col6 = st.columns(2)
