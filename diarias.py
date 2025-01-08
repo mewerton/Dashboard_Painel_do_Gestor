@@ -5,7 +5,8 @@ import plotly.graph_objects as go
 import locale
 from sidebar import load_sidebar
 from data_loader import load_data
-from chatbot import render_chatbot  # Importar a função do chatbot
+#from chatbot import render_chatbot  # Importar a função do chatbot
+from analyzer import botao_analise
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
@@ -42,7 +43,7 @@ def run_dashboard():
         return  # Encerra a função aqui se nenhuma UG foi selecionada
     
     # Chame o chatbot para renderizar no sidebar
-    render_chatbot()
+    #render_chatbot()
 
     if df is not None:
         # Filtrar dados apenas para o Poder Executivo
@@ -159,6 +160,27 @@ def run_dashboard():
                 df_categoria['Valor Pago (R$)'] = df_categoria['Valor Pago (R$)'].apply(lambda x: f"R$ {x:,.2f}" if pd.notnull(x) else 'R$ 0,00')
                 st.dataframe(df_categoria)
 
+        # Adicionar botão de análise com inteligência artificial
+        st.markdown("---")  # Adicionar uma linha divisória para separação visual
+        st.subheader("Análise com Inteligência Artificial")
+
+        # Contexto dos filtros
+        # Contexto dos filtros
+        filtros = {
+            "UGs Selecionadas": selected_ug_description,
+            "Período Selecionado (Ano)": f"{selected_ano[0]} a {selected_ano[1]}",
+            "Meses Selecionados": f"{selected_mes[0]} a {selected_mes[1]}"
+        }
+
+        botao_analise(
+            titulo="Análise das Tabelas de Diárias",
+            tabelas=[
+                ("Resumo Mensal de Diárias", df_mensal),
+                ("Resumo por Categoria de Diárias", df_categoria)
+            ],
+            botao_texto="Analisar com Inteligência Artificial",
+            filtros=filtros
+        )
                 
     with tab2:
 
