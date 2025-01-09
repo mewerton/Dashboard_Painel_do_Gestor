@@ -5,6 +5,7 @@ import locale
 from sidebar import load_sidebar
 from data_loader import load_data
 from chatbot import render_chatbot  # Importar a função do chatbot
+from analyzer import botao_analise
 
 # Configurar o locale para português do Brasil
 #locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -96,53 +97,87 @@ def run_dashboard():
 
     with tab1:
 
-        col1, col2 = st.columns(2)
+            col1, col2 = st.columns(2)
 
-        #col1.metric("Quantidade de Despesas", quantidade_despesas)
-        col1.metric("Valor Total", valor_total_formatado)
+            # Exibir a métrica de valor total
+            col1.metric("Valor Total", valor_total_formatado)
 
-    # Gráfico de Setores: Despesas por Função
-        col5, col6 = st.columns(2)
+            # Gráfico de Despesas por Ano
+            col5, col6 = st.columns(2)
 
-        with col5:
-        # Gráfico de Despesas por Ano
-            df_ano = df_filtered.groupby('ANO')['VALOR_PAGO'].sum().reset_index()
-            df_ano['VALOR_PAGO_ABREVIADO'] = df_ano['VALOR_PAGO'].apply(format_currency)
+            with col5:
+                # Preparar dados para o gráfico de despesas por ano
+                df_ano = df_filtered.groupby('ANO')['VALOR_PAGO'].sum().reset_index()
+                df_ano['VALOR_PAGO_ABREVIADO'] = df_ano['VALOR_PAGO'].apply(format_currency)
 
-    # Criar o gráfico de barras com valores abreviados
-            fig_ano = px.bar(
-                df_ano, 
-                x='ANO', 
-                y='VALOR_PAGO', 
-                title='Despesas por Ano', 
-                labels={'VALOR_PAGO': 'Valor Pago'}, 
-                color_discrete_sequence=['#41b8d5']
+                # Criar o gráfico de barras com valores abreviados
+                fig_ano = px.bar(
+                    df_ano, 
+                    x='ANO', 
+                    y='VALOR_PAGO', 
+                    title='Despesas por Ano', 
+                    labels={'VALOR_PAGO': 'Valor Pago'}, 
+                    color_discrete_sequence=['#41b8d5']
+                )
+
+                # Atualizar traços para definir a cor do texto dentro das barras
+                fig_ano.update_traces(
+                    text=df_ano['VALOR_PAGO_ABREVIADO'], 
+                    textposition='inside', 
+                    textfont_color='white',  # Define a cor do texto dentro das barras como branco
+                    hovertemplate='%{x}<br>%{text}'
+                )
+
+                st.plotly_chart(fig_ano, use_container_width=True)
+
+            with col6:
+                # Preparar dados para o gráfico de despesas por função
+                df_funcao = df_filtered.groupby('DESCRICAO_FUNCAO')['VALOR_PAGO'].sum().reset_index()
+                fig_funcao = px.pie(
+                    df_funcao, 
+                    values='VALOR_PAGO', 
+                    names='DESCRICAO_FUNCAO', 
+                    title='Proporção das Despesas por Função', 
+                    labels={'VALOR_PAGO': 'Valor Pago', 'DESCRICAO_FUNCAO': 'Função'},
+                    hole=0.4,  # Adiciona o parâmetro hole para criar um gráfico de rosca
+                    color_discrete_sequence=['#2d8bba','#2f5f98', '#41b8d5', '#31356e', '#042b4d']  # Define as cores personalizadas
+                )
+                st.plotly_chart(fig_funcao, use_container_width=True)
+
+            # Criar tabela de gastos mensais do ano corrente
+            ano_corrente = df_filtered['ANO'].max()
+            df_ano_corrente = df_filtered[df_filtered['ANO'] == ano_corrente].groupby('MES')['VALOR_PAGO'].sum().reset_index()
+            df_ano_corrente['MES'] = df_ano_corrente['MES'].apply(lambda x: f"Mês {x}")
+            df_ano_corrente['VALOR_PAGO'] = df_ano_corrente['VALOR_PAGO'].apply(format_currency)
+
+            # Preparar tabelas ocultas para análise
+            tabela_ano = df_ano[['ANO', 'VALOR_PAGO']]
+            tabela_funcao = df_funcao[['DESCRICAO_FUNCAO', 'VALOR_PAGO']]
+            tabela_ano_corrente = df_ano_corrente[['MES', 'VALOR_PAGO']]
+
+            # Contexto dos filtros
+            filtros = {
+                "UGs Selecionadas": selected_ug_description,
+                "Período Selecionado (Ano)": f"{selected_ano[0]} a {selected_ano[1]}",
+                "Meses Selecionados": f"{selected_mes[0]} a {selected_mes[1]}"
+            }
+
+            # Adicionar botão de análise com IA
+            st.markdown("---")  # Linha divisória para separação visual
+            st.subheader("Análise com Inteligência Artificial")
+
+            botao_analise(
+                titulo="Análise das Despesas por Ano, Função e Ano Corrente",
+                tabelas=[
+                    ("Despesas por Ano", tabela_ano),
+                    ("Despesas por Função", tabela_funcao),
+                    ("Despesas Mensais do Ano Corrente", tabela_ano_corrente)
+                ],
+                botao_texto="Analisar com Inteligência Artificial",
+                filtros=filtros,
+                key="botao_analise_tab1"
             )
-
-    # Atualizar traços para definir a cor do texto dentro das barras
-            fig_ano.update_traces(
-                text=df_ano['VALOR_PAGO_ABREVIADO'], 
-                textposition='inside', 
-                textfont_color='white',  # Define a cor do texto dentro das barras como branco
-                hovertemplate='%{x}<br>%{text}'
-            )
-
-            st.plotly_chart(fig_ano, use_container_width=True)
-
-        with col6:
-    # Gráfico de Despesas por Função
-            df_funcao = df_filtered.groupby('DESCRICAO_FUNCAO')['VALOR_PAGO'].sum().reset_index()
-            fig_funcao = px.pie(
-                df_funcao, 
-                values='VALOR_PAGO', 
-                names='DESCRICAO_FUNCAO', 
-                title='Proporção das Despesas por Função', 
-                labels={'VALOR_PAGO': 'Valor Pago', 'DESCRICAO_FUNCAO': 'Função'},
-                hole=0.4,  # Adiciona o parâmetro hole para criar um gráfico de rosca
-                color_discrete_sequence=['#2d8bba','#2f5f98', '#41b8d5', '#31356e', '#042b4d']  # Define as cores personalizadas
-            )
-            st.plotly_chart(fig_funcao, use_container_width=True)
-
+        
     with tab2:
 
     # Função para criar gráficos de barras horizontais
