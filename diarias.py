@@ -165,7 +165,6 @@ def run_dashboard():
         st.subheader("Análise com Inteligência Artificial")
 
         # Contexto dos filtros
-        # Contexto dos filtros
         filtros = {
             "UGs Selecionadas": selected_ug_description,
             "Período Selecionado (Ano)": f"{selected_ano[0]} a {selected_ano[1]}",
@@ -179,7 +178,8 @@ def run_dashboard():
                 ("Resumo por Categoria de Diárias", df_categoria)
             ],
             botao_texto="Analisar com Inteligência Artificial",
-            filtros=filtros
+            filtros=filtros,
+            key="botao_analise_dia_tab1"
         )
                 
     with tab2:
@@ -222,6 +222,28 @@ def run_dashboard():
 
         # Exibir o gráfico
         st.plotly_chart(fig_favorecido, use_container_width=True)
+
+        # Adicionar análise com inteligência artificial (sem exibir a tabela)
+        st.markdown("---")  # Linha divisória para separação visual
+        st.subheader("Análise com Inteligência Artificial")
+
+        # Contexto dos filtros
+        filtros = {
+            "UGs Selecionadas": selected_ug_description,
+            "Período Selecionado (Ano)": f"{selected_ano[0]} a {selected_ano[1]}",
+            "Meses Selecionados": f"{selected_mes[0]} a {selected_mes[1]}"
+        }
+
+        # Adicionar botão de análise com IA
+        botao_analise(
+            titulo="Análise por Favorecido",
+            tabelas=[
+                ("Tabela de Favorecidos", df_total_por_favorecido[['NOME_FAVORECIDO', 'VALOR_PAGO']])
+            ],
+            botao_texto="Analisar com Inteligência Artificial",
+            filtros=filtros,
+            key="botao_analise_dia_tab2"
+        )
 
 
     #===========================================================================================
@@ -402,6 +424,7 @@ def run_dashboard():
         with col11:
             st.subheader('Nos 6 Últimos Meses ou Mais')
             st.dataframe(df_6_ou_mais_meses)
+
 
     with tab4:
         #====== Adicionar a tabela de Favorecidos das Diárias com filtro por palavra-chave e cálculo do valor total filtrado
