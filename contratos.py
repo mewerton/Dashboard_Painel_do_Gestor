@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import locale
 from sidebar import load_sidebar
 from data_loader import load_contracts_data
-from chatbot import render_chatbot  # Importar a função do chatbot
+#from chatbot import render_chatbot  # Importar a função do chatbot
 
 # Configurar o locale para português do Brasil
 #locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -41,7 +41,7 @@ def run_dashboard():
     selected_ugs, selected_data_inicio, selected_data_fim = load_sidebar(df_contratos, dashboard_name='Contratos')
     
     # Chame o chatbot para renderizar no sidebar
-    render_chatbot()
+    #render_chatbot()
 
     # Aplicar filtros ao dataframe de contratos
     df_contratos = df_contratos[df_contratos['UG'].isin(selected_ugs)]
