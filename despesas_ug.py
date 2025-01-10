@@ -204,7 +204,7 @@ def run_dashboard():
             ],
             botao_texto="Analisar com Inteligência Artificial",
             filtros=filtros,
-            key="botao_analise_tab1"
+            key="botao_analise_des_tab1"
         )
         
     with tab2:
@@ -274,7 +274,7 @@ def run_dashboard():
             ],
             botao_texto="Analisar com Inteligência Artificial",
             filtros=filtros,
-            key="botao_analise_tab2"
+            key="botao_analise_des_tab2"
         )
 
     with tab3:
@@ -377,7 +377,7 @@ def run_dashboard():
             ],
             botao_texto="Analisar com Inteligência Artificial",
             filtros=filtros,
-            key="botao_analise_tab3"
+            key="botao_analise_des_tab3"
         )
 
     with tab4:
