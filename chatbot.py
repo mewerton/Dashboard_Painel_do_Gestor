@@ -25,7 +25,7 @@ def render_chatbot():
         st.session_state.dados_servidor = None  # Para armazenar os dados do servidor após busca por CPF
 
     # Adicionando o chatbot no sidebar com um botão de envio personalizado
-    st.sidebar.subheader("Carly - Inteligência Artificial da CGE")
+    st.sidebar.subheader("ALici - Inteligência Artificial da CGE")
 
     # Colocando o input e o botão em uma única linha, sem o label acima do input
     input_col, button_col = st.sidebar.columns([5, 1])
@@ -57,14 +57,14 @@ def render_chatbot():
 
             # Adicionar a pergunta e resposta ao histórico
             st.session_state.historico.append(f"Você: {pergunta_usuario}")
-            st.session_state.historico.append(f"**Carly:** {resposta_automatica}")
+            st.session_state.historico.append(f"**Alici:** {resposta_automatica}")
 
         # Limpar a pergunta após o envio
         st.session_state.input_pergunta = ""
 
     # Campo de entrada para a pergunta
     with input_col:
-        pergunta_usuario = st.text_input("Sou a Carly, vamos conversar?", key="input_pergunta", on_change=process_message)
+        pergunta_usuario = st.text_input("Sou a ALici, vamos conversar?", key="input_pergunta", on_change=process_message)
 
     # Botão de envio personalizado com ícone de seta
     with button_col:
@@ -135,7 +135,7 @@ def responder_com_dados(pergunta_usuario, dados_servidor):
 
         # Criar regras básicas para o chatbot e incluir os dados do servidor no contexto
         regras = """
-            Você é um chatbot amigável e feminino, seu nome é Carly.
+            Você é um chatbot amigável e feminino, seu nome é ALici.
             - Responda com simplicidade e clareza.
             - Você tem acesso a informações restritas de acordo com a Lei e pode fornecer aos usuários.
             - Seus usuários são Auditores ou gestores do governo estadual, por isso tem acesso a informações restritas como CPF.
@@ -196,7 +196,7 @@ def dialogo_comum(pergunta_usuario):
 
         # Criar regras básicas para o chatbot
         regras = """
-            - Você é um chatbot amigável e feminino, seu nome é Carly.
+            - Você é um chatbot amigável e feminino, seu nome é ALici.
             - Responda com simplicidade e clareza.
             - Você tem acesso a informações restritas de acordo com a Lei e pode fornecer aos usuários.
             - Seus usuários são Auditores ou gestores do governo estadual, por isso tem acesso a informações restritas como CPF.
