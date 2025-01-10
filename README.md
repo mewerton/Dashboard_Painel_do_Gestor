@@ -37,7 +37,17 @@ Você verá o nome do ambiente venv no início da linha do prompt, indicando que
 Com o ambiente virtual ativado, instale as bibliotecas necessárias listadas no arquivo requirements.txt. Isso pode ser feito com o seguinte comando:
 pip install -r requirements.txt
 
-# Passo 4: Executar a Aplicação
+# Passo 5: Criar arquivo config.toml
+
+Algumas chaves são necessárias para executar o projeto: 
+FOLDER_ID = "XXXXXX"
+LOGIN_FOLDER_ID = "XXXXXX"
+CONTRATOS_FOLDER_ID = "XXXXXX"
+API_KEY = "XXXXXX"
+FOLHA_FOLDER_ID = "XXXXXX"
+CREDENTIALS_FILE = "XXXXXX"
+
+# Passo 6: Executar a Aplicação
 Agora que todas as dependências estão instaladas, você pode rodar o painel com o Streamlit. Use o seguinte comando no Prompt de Comando ou PowerShell:
 streamlit run app.py
 
