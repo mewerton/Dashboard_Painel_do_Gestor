@@ -3,7 +3,7 @@ import locale
 import base64
 from PIL import Image
 from sidebar import load_sidebar
-from chatbot import render_chatbot  # Importar a função do chatbot
+#from chatbot import render_chatbot  # Importar a função do chatbot
 
 # Tente definir o locale para pt_BR. Se falhar, use o locale padrão do sistema
 try:
@@ -20,7 +20,7 @@ def run_dashboard():
     load_sidebar(None, "Início")
 
     # Chame o chatbot para renderizar no sidebar
-    render_chatbot()
+    #render_chatbot()
 
     # Exibir título da página
     st.title('Módulos disponíveis')

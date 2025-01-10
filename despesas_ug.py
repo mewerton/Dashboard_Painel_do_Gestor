@@ -4,7 +4,7 @@ import plotly.express as px
 import locale
 from sidebar import load_sidebar
 from data_loader import load_data
-from chatbot import render_chatbot  # Importar a função do chatbot
+#from chatbot import render_chatbot  # Importar a função do chatbot
 from analyzer import botao_analise
 
 # Configurar o locale para português do Brasil
@@ -50,7 +50,7 @@ def run_dashboard():
     selected_ugs_despesas, selected_ano, selected_mes = load_sidebar(df, "despesas_ug")
 
     # Chame o chatbot para renderizar no sidebar
-    render_chatbot()
+    #render_chatbot()
 
     if df is not None:
         # Filtrar dados apenas para o Poder Executivo
@@ -97,98 +97,126 @@ def run_dashboard():
 
     with tab1:
 
-            col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
 
-            # Exibir a métrica de valor total
-            col1.metric("Valor Total", valor_total_formatado)
+        # Exibir a métrica de valor total
+        col1.metric("Valor Total", valor_total_formatado)
 
-            # Gráfico de Despesas por Ano
-            col5, col6 = st.columns(2)
+        # Gráfico de Despesas por Ano
+        col5, col6 = st.columns(2)
 
-            with col5:
-                # Preparar dados para o gráfico de despesas por ano
-                df_ano = df_filtered.groupby('ANO')['VALOR_PAGO'].sum().reset_index()
-                df_ano['VALOR_PAGO_ABREVIADO'] = df_ano['VALOR_PAGO'].apply(format_currency)
+        with col5:
+            # Preparar dados para o gráfico de despesas por ano
+            df_ano = df_filtered.groupby('ANO')['VALOR_PAGO'].sum().reset_index()
+            df_ano['VALOR_PAGO_ABREVIADO'] = df_ano['VALOR_PAGO'].apply(format_currency)
 
-                # Criar o gráfico de barras com valores abreviados
-                fig_ano = px.bar(
-                    df_ano, 
-                    x='ANO', 
-                    y='VALOR_PAGO', 
-                    title='Despesas por Ano', 
-                    labels={'VALOR_PAGO': 'Valor Pago'}, 
-                    color_discrete_sequence=['#41b8d5']
-                )
-
-                # Atualizar traços para definir a cor do texto dentro das barras
-                fig_ano.update_traces(
-                    text=df_ano['VALOR_PAGO_ABREVIADO'], 
-                    textposition='inside', 
-                    textfont_color='white',  # Define a cor do texto dentro das barras como branco
-                    hovertemplate='%{x}<br>%{text}'
-                )
-
-                st.plotly_chart(fig_ano, use_container_width=True)
-
-            with col6:
-                # Preparar dados para o gráfico de despesas por função
-                df_funcao = df_filtered.groupby('DESCRICAO_FUNCAO')['VALOR_PAGO'].sum().reset_index()
-                fig_funcao = px.pie(
-                    df_funcao, 
-                    values='VALOR_PAGO', 
-                    names='DESCRICAO_FUNCAO', 
-                    title='Proporção das Despesas por Função', 
-                    labels={'VALOR_PAGO': 'Valor Pago', 'DESCRICAO_FUNCAO': 'Função'},
-                    hole=0.4,  # Adiciona o parâmetro hole para criar um gráfico de rosca
-                    color_discrete_sequence=['#2d8bba','#2f5f98', '#41b8d5', '#31356e', '#042b4d']  # Define as cores personalizadas
-                )
-                st.plotly_chart(fig_funcao, use_container_width=True)
-
-            # Criar tabela de gastos mensais do ano corrente
-            ano_corrente = df_filtered['ANO'].max()
-            df_ano_corrente = df_filtered[df_filtered['ANO'] == ano_corrente].groupby('MES')['VALOR_PAGO'].sum().reset_index()
-            df_ano_corrente['MES'] = df_ano_corrente['MES'].apply(lambda x: f"Mês {x}")
-            df_ano_corrente['VALOR_PAGO'] = df_ano_corrente['VALOR_PAGO'].apply(format_currency)
-
-            # Preparar tabelas ocultas para análise
-            tabela_ano = df_ano[['ANO', 'VALOR_PAGO']]
-            tabela_funcao = df_funcao[['DESCRICAO_FUNCAO', 'VALOR_PAGO']]
-            tabela_ano_corrente = df_ano_corrente[['MES', 'VALOR_PAGO']]
-
-            # Contexto dos filtros
-            filtros = {
-                "UGs Selecionadas": selected_ug_description,
-                "Período Selecionado (Ano)": f"{selected_ano[0]} a {selected_ano[1]}",
-                "Meses Selecionados": f"{selected_mes[0]} a {selected_mes[1]}"
-            }
-
-            # Adicionar botão de análise com IA
-            st.markdown("---")  # Linha divisória para separação visual
-            st.subheader("Análise com Inteligência Artificial")
-
-            botao_analise(
-                titulo="Análise das Despesas por Ano, Função e Ano Corrente",
-                tabelas=[
-                    ("Despesas por Ano", tabela_ano),
-                    ("Despesas por Função", tabela_funcao),
-                    ("Despesas Mensais do Ano Corrente", tabela_ano_corrente)
-                ],
-                botao_texto="Analisar com Inteligência Artificial",
-                filtros=filtros,
-                key="botao_analise_tab1"
+            # Criar o gráfico de barras com valores abreviados
+            fig_ano = px.bar(
+                df_ano, 
+                x='ANO', 
+                y='VALOR_PAGO', 
+                title='Despesas por Ano', 
+                labels={'VALOR_PAGO': 'Valor Pago'}, 
+                color_discrete_sequence=['#41b8d5']
             )
+
+            # Atualizar traços para definir a cor do texto dentro das barras
+            fig_ano.update_traces(
+                text=df_ano['VALOR_PAGO_ABREVIADO'], 
+                textposition='inside', 
+                textfont_color='white',  # Define a cor do texto dentro das barras como branco
+                hovertemplate='%{x}<br>%{text}'
+            )
+
+            st.plotly_chart(fig_ano, use_container_width=True)
+
+        with col6:
+            # Preparar dados para o gráfico de despesas por função
+            df_funcao = df_filtered.groupby('DESCRICAO_FUNCAO')['VALOR_PAGO'].sum().reset_index()
+            fig_funcao = px.pie(
+                df_funcao, 
+                values='VALOR_PAGO', 
+                names='DESCRICAO_FUNCAO', 
+                title='Proporção das Despesas por Função', 
+                labels={'VALOR_PAGO': 'Valor Pago', 'DESCRICAO_FUNCAO': 'Função'},
+                hole=0.4,  # Adiciona o parâmetro hole para criar um gráfico de rosca
+                color_discrete_sequence=['#2d8bba','#2f5f98', '#41b8d5', '#31356e', '#042b4d']  # Define as cores personalizadas
+            )
+            st.plotly_chart(fig_funcao, use_container_width=True)
+
+    # Gráfico de Despesas Mensais do Ano Corrente
+        st.markdown("### Despesas Mensais do Ano Corrente")
+        ano_corrente = df_filtered['ANO'].max()
+
+        # Mapear os números dos meses para os nomes dos meses
+        meses_map = {
+            1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
+            7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+        }
+
+        df_ano_corrente = df_filtered[df_filtered['ANO'] == ano_corrente].groupby('MES')['VALOR_PAGO'].sum().reset_index()
+        df_ano_corrente['MES'] = df_ano_corrente['MES'].map(meses_map)
+        df_ano_corrente['VALOR_PAGO_ABREVIADO'] = df_ano_corrente['VALOR_PAGO'].apply(format_currency)
+
+        fig_corrente = px.bar(
+            df_ano_corrente,
+            x='MES',
+            y='VALOR_PAGO',
+            title=f'Despesas Mensais do Ano Corrente ({ano_corrente})',
+            labels={'MES': 'Mês', 'VALOR_PAGO': 'Valor Pago'},
+            text='VALOR_PAGO_ABREVIADO',
+            color_discrete_sequence=['#41b8d5']
+        )
+        fig_corrente.update_layout(
+            xaxis=dict(categoryorder='array', categoryarray=list(meses_map.values()))
+        )
+        fig_corrente.update_traces(
+            textposition='outside',
+            hovertemplate='%{x}<br>%{text}'
+        )
+        st.plotly_chart(fig_corrente, use_container_width=True)
+
+        # Criar tabela de gastos mensais do ano corrente
+        df_ano_corrente['VALOR_PAGO'] = df_ano_corrente['VALOR_PAGO'].apply(format_currency)
+
+        # Preparar tabelas ocultas para análise
+        tabela_ano = df_ano[['ANO', 'VALOR_PAGO']]
+        tabela_funcao = df_funcao[['DESCRICAO_FUNCAO', 'VALOR_PAGO']]
+        tabela_ano_corrente = df_ano_corrente[['MES', 'VALOR_PAGO']]
+
+        # Contexto dos filtros
+        filtros = {
+            "UGs Selecionadas": selected_ug_description,
+            "Período Selecionado (Ano)": f"{selected_ano[0]} a {selected_ano[1]}",
+            "Meses Selecionados": f"{selected_mes[0]} a {selected_mes[1]}"
+        }
+
+        # Adicionar botão de análise com IA
+        st.markdown("---")  # Linha divisória para separação visual
+        st.subheader("Análise com Inteligência Artificial")
+
+        botao_analise(
+            titulo="Análise das Despesas por Ano, Função e Ano Corrente",
+            tabelas=[
+                ("Despesas por Ano", tabela_ano),
+                ("Despesas por Função", tabela_funcao),
+                ("Despesas Mensais do Ano Corrente", tabela_ano_corrente)
+            ],
+            botao_texto="Analisar com Inteligência Artificial",
+            filtros=filtros,
+            key="botao_analise_tab1"
+        )
         
     with tab2:
 
-    # Função para criar gráficos de barras horizontais
+        # Função para criar gráficos de barras horizontais
         def plot_bar_chart(df, group_col, title, x_label, y_label, color='#E55115'):
             df_grouped = df.groupby(group_col)['VALOR_PAGO'].sum().reset_index()
-            #df_grouped['VALOR_PAGO_FORMATADO'] = df_grouped['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
             df_grouped['VALOR_PAGO_FORMATADO'] = df_grouped['VALOR_PAGO'].apply(
                 lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else "R$ 0,00"
             )
 
-    # Criar o gráfico de barras horizontais com a cor especificada
+            # Criar o gráfico de barras horizontais com a cor especificada
             fig = px.bar(
                 df_grouped, 
                 x='VALOR_PAGO', 
@@ -198,33 +226,67 @@ def run_dashboard():
                 labels={'VALOR_PAGO': x_label, group_col: y_label},
                 color_discrete_sequence=[color]  # Define a cor das barras
             )
-            fig.update_traces(text=df_grouped['VALOR_PAGO_FORMATADO'], textposition='auto', insidetextanchor='end', hoverinfo='x+text')
-    
-    # Calcular a altura do gráfico com base no número de categorias
+            fig.update_traces(
+                text=df_grouped['VALOR_PAGO_FORMATADO'], 
+                textposition='auto', 
+                insidetextanchor='end', 
+                hoverinfo='x+text'
+            )
+        
+            # Calcular a altura do gráfico com base no número de categorias
             num_categories = df_grouped.shape[0]
             fig_height = max(400, num_categories * 30)
-    
+        
             fig.update_layout(yaxis={'categoryorder':'total ascending'}, height=fig_height)
             st.plotly_chart(fig, use_container_width=True)
 
-    # Gráfico de Barras: Despesas por Subfunção
-        plot_bar_chart(df_filtered, 'DESCRICAO_SUB_FUNCAO', 'Despesas por Subfunção', 'Valor Pago', 'Subfunção')
+            return df_grouped  # Retornar a tabela gerada para análise
 
-    # Gráfico de Barras: Despesas por Fonte de Recurso
-        plot_bar_chart(df_filtered, 'DESCRICAO_FONTE', 'Despesas por Fonte de Recurso', 'Valor Pago', 'Fonte de Recurso')
+        # Criar tabelas invisíveis e gráficos
+        st.markdown("### Gráficos de Despesas por Subfunção e Fonte de Recurso")
+
+        # Gráfico de Barras: Despesas por Subfunção
+        tabela_subfuncao = plot_bar_chart(df_filtered, 'DESCRICAO_SUB_FUNCAO', 'Despesas por Subfunção', 'Valor Pago', 'Subfunção')
+
+        # Gráfico de Barras: Despesas por Fonte de Recurso
+        tabela_fonte = plot_bar_chart(df_filtered, 'DESCRICAO_FONTE', 'Despesas por Fonte de Recurso', 'Valor Pago', 'Fonte de Recurso')
+
+        # Preparar tabelas para análise
+        tabela_subfuncao = tabela_subfuncao[['DESCRICAO_SUB_FUNCAO', 'VALOR_PAGO']]
+        tabela_fonte = tabela_fonte[['DESCRICAO_FONTE', 'VALOR_PAGO']]
+
+        # Contexto dos filtros
+        filtros = {
+            "UGs Selecionadas": selected_ug_description,
+            "Período Selecionado (Ano)": f"{selected_ano[0]} a {selected_ano[1]}",
+            "Meses Selecionados": f"{selected_mes[0]} a {selected_mes[1]}"
+        }
+
+        # Adicionar botão de análise com IA
+        st.markdown("---")  # Linha divisória para separação visual
+        st.subheader("Análise com Inteligência Artificial")
+
+        botao_analise(
+            titulo="Análise das Despesas por Subfunção e Fonte de Recurso",
+            tabelas=[
+                ("Despesas por Subfunção", tabela_subfuncao),
+                ("Despesas por Fonte de Recurso", tabela_fonte)
+            ],
+            botao_texto="Analisar com Inteligência Artificial",
+            filtros=filtros,
+            key="botao_analise_tab2"
+        )
 
     with tab3:
 
-    # Gráfico de Barras: Despesas por Favorecido
+        # Gráfico de Barras: Despesas por Favorecido
         df_favorecido = df_filtered.groupby('NOME_FAVORECIDO')['VALOR_PAGO'].sum().reset_index()
         df_favorecido = df_favorecido.sort_values(by='VALOR_PAGO', ascending=False).head(10)  # Exibir os 10 maiores favorecidos
-        #df_favorecido['VALOR_PAGO_FORMATADO'] = df_favorecido['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
         df_favorecido['VALOR_PAGO_FORMATADO'] = df_favorecido['VALOR_PAGO'].apply(
             lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else "R$ 0,00"
         )
 
-
-    # Criar o gráfico de barras horizontais com a cor especificada
+        # Criar o gráfico de barras horizontais com a cor especificada
         fig_favorecido = px.bar(
             df_favorecido, 
             x='VALOR_PAGO', 
@@ -232,30 +294,24 @@ def run_dashboard():
             orientation='h', 
             title='Despesas por Favorecido', 
             labels={'VALOR_PAGO': 'Valor Pago', 'NOME_FAVORECIDO': 'Favorecido'},
-            color_discrete_sequence=['#E55115']  # Define a cor das barras
+            color_discrete_sequence=['#E55115']
         )
-        fig_favorecido.update_traces(text=df_favorecido['VALOR_PAGO_FORMATADO'], textposition='auto', insidetextanchor='end', hoverinfo='x+text')
+        fig_favorecido.update_traces(
+            text=df_favorecido['VALOR_PAGO_FORMATADO'], 
+            textposition='auto', 
+            insidetextanchor='end', 
+            hoverinfo='x+text'
+        )
 
-    # Calcular a altura do gráfico com base no número de categorias
+        # Ajustar altura do gráfico dinamicamente
         num_categories_favorecido = df_favorecido.shape[0]
         fig_height_favorecido = max(400, num_categories_favorecido * 30)
-
         fig_favorecido.update_layout(yaxis={'categoryorder':'total ascending'}, height=fig_height_favorecido)
+
+        # Exibir o gráfico
         st.plotly_chart(fig_favorecido, use_container_width=True)
 
-
-    # Gráfico de Barras Empilhadas: Despesas por Natureza da Despesa
-    # Agrupar as despesas por natureza
-        df_natureza = df_filtered.groupby(['DESCRICAO_NATUREZA1', 'DESCRICAO_NATUREZA2', 'DESCRICAO_NATUREZA3', 'DESCRICAO_NATUREZA4', 'DESCRICAO_NATUREZA5', 'DESCRICAO_NATUREZA6'])['VALOR_PAGO'].sum().reset_index()
-
-    # Formatar os valores como moeda
-    #df_natureza['VALOR_PAGO_FORMATADO'] = df_natureza['VALOR_PAGO'].apply(lambda x: locale.currency(x, grouping=True))
-        df_natureza['VALOR_PAGO_FORMATADO'] = df_natureza['VALOR_PAGO'].apply(
-            lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else "R$ 0,00"
-        )
-
-
-    # Opções de seleção de naturezas
+        # Gráfico de Barras Empilhadas: Despesas por Natureza da Despesa
         opcoes_natureza = {
             'Natureza 1': 'DESCRICAO_NATUREZA1',
             'Natureza 2': 'DESCRICAO_NATUREZA2',
@@ -263,53 +319,66 @@ def run_dashboard():
             'Natureza 4': 'DESCRICAO_NATUREZA4',
             'Natureza 5': 'DESCRICAO_NATUREZA5',
             'Natureza 6': 'DESCRICAO_NATUREZA6'
-        #'Natureza': 'DESCRICAO_NATUREZA'
         }
 
-    # Caixa de seleção para escolher a natureza
+        # Caixa de seleção para escolher a natureza
         selecao_natureza = st.selectbox(
             'Selecione a Natureza que deseja exibir no gráfico:',
             list(opcoes_natureza.keys()),
-            index=5  # Define "Natureza 6" como padrão
+            index=5
         )
 
-    # Filtrando a coluna selecionada
+        # Filtrar a coluna selecionada
         coluna_selecionada = opcoes_natureza[selecao_natureza]
 
-    # Agrupando os dados pela natureza selecionada e somando os valores pagos
-        df_agrupado = df_filtered.groupby(coluna_selecionada)['VALOR_PAGO'].sum().reset_index()
+        # Agrupar os dados pela natureza selecionada e somar os valores pagos
+        df_natureza = df_filtered.groupby(coluna_selecionada)['VALOR_PAGO'].sum().reset_index()
+        df_natureza = df_natureza[df_natureza['VALOR_PAGO'] > 0]
+        df_natureza['VALOR_PAGO_FORMATADO'] = df_natureza['VALOR_PAGO'].apply(format_currency)
 
-    # Filtrando os valores maiores que 0
-        df_agrupado = df_agrupado[df_agrupado['VALOR_PAGO'] > 0]
-
-    # Formatando os valores em real brasileiro
-        df_agrupado['VALOR_PAGO_FORMATADO'] = df_agrupado['VALOR_PAGO'].apply(format_currency)
-
-    # Definindo a altura do gráfico dinamicamente
-        num_barras = len(df_agrupado)
-        height = max(600, num_barras * 30)  # Ajusta a altura com base no número de barras
-
-    # Criando o gráfico de barras com os valores visíveis
-        fig_bar = px.bar(
-            df_agrupado,
+        # Criar gráfico de barras
+        height = max(600, len(df_natureza) * 30)
+        fig_natureza = px.bar(
+            df_natureza,
             x=coluna_selecionada,
             y='VALOR_PAGO',
             text='VALOR_PAGO_FORMATADO',
             title=f'Despesas por {selecao_natureza}',
             labels={coluna_selecionada: selecao_natureza, 'VALOR_PAGO': 'Valor Pago'},
-            color_discrete_sequence=['#095aa2']  # Define a cor das barras
+            color_discrete_sequence=['#095aa2']
         )
+        fig_natureza.update_traces(textposition='outside')
+        fig_natureza.update_layout(height=height)
 
-    # Atualizando o layout do gráfico
-        fig_bar.update_traces(textposition='outside')
-        fig_bar.update_layout(
-            uniformtext_minsize=5,
-            uniformtext_mode='hide',
-            height=height  # Define a altura do gráfico
+        # Exibir o gráfico
+        st.plotly_chart(fig_natureza, use_container_width=True)
+
+        # Preparar tabelas para análise
+        tabela_favorecido = df_favorecido[['NOME_FAVORECIDO', 'VALOR_PAGO']]
+        tabela_natureza = df_natureza[[coluna_selecionada, 'VALOR_PAGO']]
+
+        # Contexto dos filtros
+        filtros = {
+            "UGs Selecionadas": selected_ug_description,
+            "Período Selecionado (Ano)": f"{selected_ano[0]} a {selected_ano[1]}",
+            "Meses Selecionados": f"{selected_mes[0]} a {selected_mes[1]}",
+            "Natureza Selecionada": selecao_natureza
+        }
+
+        # Adicionar botão de análise com IA
+        st.markdown("---")
+        st.subheader("Análise com Inteligência Artificial")
+
+        botao_analise(
+            titulo="Análise das Despesas por Favorecido e Natureza",
+            tabelas=[
+                ("Despesas por Favorecido", tabela_favorecido),
+                (f"Despesas por {selecao_natureza}", tabela_natureza)
+            ],
+            botao_texto="Analisar com Inteligência Artificial",
+            filtros=filtros,
+            key="botao_analise_tab3"
         )
-
-    # Exibindo o gráfico no Streamlit
-        st.plotly_chart(fig_bar, use_container_width=True)
 
     with tab4:
 
