@@ -77,7 +77,7 @@ def run_dashboard():
     st.markdown(f'<h3 style="font-size:20px;"> {selected_ug_description}</h3>', unsafe_allow_html=True)
 
    # Dividindo em abas
-    tab1, tab2, tab3, tab4 = st.tabs(["Resumo das Diárias", "Diárias por Favorecido", "Análise de Consecutividade","Favorecidos Detalhado"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Resumo das Diárias", "Diárias por Favorecido", "Análise de Consecutividade","Favorecidos Detalhado","Análise Geral com IA"])
 
     with tab1:
 
@@ -555,6 +555,43 @@ def run_dashboard():
         ax.imshow(wordcloud, interpolation='bilinear')
         ax.axis("off")
         st.pyplot(fig)
+
+    with tab5:
+        #st.subheader("Análise Geral com IA")
+
+        # Preparar todas as tabelas para análise
+        tabelas_analise = []
+
+        # Tab 1 - Resumo Mensal e Categoria
+        tabelas_analise.append(("Resumo Mensal de Diárias", df_mensal))
+        tabelas_analise.append(("Resumo por Categoria de Diárias", df_categoria))
+
+        # Tab 2 - Favorecidos
+        tabelas_analise.append(("Tabela de Favorecidos", df_total_por_favorecido[['NOME_FAVORECIDO', 'VALOR_PAGO']]))
+
+        # Tab 3 - Diárias Consecutivas
+        tabelas_analise.append(("Servidores - Últimos 3 Meses", df_3_meses))
+        tabelas_analise.append(("Servidores - Últimos 4 a 5 Meses", df_4_5_meses))
+        tabelas_analise.append(("Servidores - Últimos 6 Meses ou Mais", df_6_ou_mais_meses))
+
+        # Contexto adicional para os filtros aplicados
+        filtros_geral = {
+            "UGs Selecionadas": selected_ug_description,
+            "Período Selecionado (Ano)": f"{selected_ano[0]} a {selected_ano[1]}",
+            "Meses Selecionados": f"{selected_mes[0]} a {selected_mes[1]}"
+        }
+
+        # Botão para realizar a análise geral com IA
+        #st.markdown("---")  # Linha divisória para separação visual
+        st.subheader("Análise Final com Inteligência Artificial")
+
+        botao_analise(
+            titulo="Análise Geral de Diárias",
+            tabelas=tabelas_analise,
+            botao_texto="Gerar Relatório Final com IA",
+            filtros=filtros_geral,
+            key="botao_analise_geral_ia"
+        )
 
 if __name__ == "__main__":
     run_dashboard()

@@ -93,7 +93,7 @@ def run_dashboard():
     st.markdown(f'<h3 style="font-size:20px;"> {selected_ug_description}</h3>', unsafe_allow_html=True)
     
     # Dividindo em abas
-    tab1, tab2, tab3, tab4 = st.tabs(["Visão Geral das Despesas", "Despesas por Subfunção e Fonte", "Despesas por Favorecido e Natureza","Detalhamento das Despesas"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Visão Geral das Despesas", "Despesas por Subfunção e Fonte", "Despesas por Favorecido e Natureza","Detalhamento das Despesas", "Análise Geral com IA"])
 
     with tab1:
 
@@ -447,6 +447,33 @@ def run_dashboard():
 
         # Exibir o valor total das linhas filtradas
             st.markdown(f"**Valor total pago das linhas filtradas:** R$ {valor_total_filtrado:,.2f}")
+
+    with tab5:
+
+        st.markdown("### Análise Geral com Inteligência Artificial")
+
+        # Contexto consolidado dos filtros
+        filtros = {
+            "UG Selecionada": selected_ug_description,
+            "Período Selecionado (Ano)": f"{selected_ano[0]} a {selected_ano[1]}",
+            "Meses Selecionados": f"{selected_mes[0]} a {selected_mes[1]}"
+        }
+
+        # Botão de análise geral
+        botao_analise(
+            titulo="Análise Consolidada das Despesas",
+            tabelas=[
+                ("Despesas por Ano", tabela_ano),
+                ("Despesas por Função", tabela_funcao),
+                ("Despesas por Subfunção", tabela_subfuncao),
+                ("Despesas por Fonte", tabela_fonte),
+                ("Despesas por Favorecido", tabela_favorecido),
+                ("Despesas por Natureza", tabela_natureza)
+            ],
+            botao_texto="Gerar Análise Consolidada com IA",
+            filtros=filtros,
+            key="botao_analise_geral"
+        )
 
 
 

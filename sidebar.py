@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from chatbot import render_chatbot
+#from streamlit_option_menu import option_menu
 
 def render_logout_button():
     if st.sidebar.button("Sair"):

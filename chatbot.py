@@ -131,7 +131,7 @@ def buscar_dados_por_cpf(cpf):
 def responder_com_dados(pergunta_usuario, dados_servidor):
     try:
         # Instanciar o modelo da Groq
-        chat = ChatGroq(model='llama-3.1-70b-versatile')
+        chat = ChatGroq(model='llama-3.3-70b-versatile')
 
         # Criar regras básicas para o chatbot e incluir os dados do servidor no contexto
         regras = """

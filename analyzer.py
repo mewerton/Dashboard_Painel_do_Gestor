@@ -36,7 +36,7 @@ def analisar_tabelas(titulo, tabelas, contexto_filtros=""):
             return "Erro: API Key não encontrada no arquivo config.toml."
 
         # Criar o modelo LLM
-        chat = ChatGroq(model='llama-3.1-70b-versatile')
+        chat = ChatGroq(model='llama3-8b-8192')
 
         # Preparar o prompt
         prompt = f"Contexto: {titulo}\n\n"
@@ -44,7 +44,7 @@ def analisar_tabelas(titulo, tabelas, contexto_filtros=""):
         for nome_tabela, tabela in tabelas:
             prompt += f"Tabela: {nome_tabela}\n{tabela.to_string(index=False)}\n\n"
 
-        prompt += "Analise as tabelas considerando os filtros informados e forneça insights detalhados sobre os dados apresentados."
+        prompt += "The data to be analyzed is formatted in Portuguese. Analyze the tables considering the provided filters and provide detailed insights about the presented data. Respond in Brazilian Portuguese with consistent text formatting, ensuring no words are joined together without proper spacing."
 
         # Enviar para a LLM como uma string
         resposta = chat.invoke(prompt)  # Passar o prompt diretamente como string
