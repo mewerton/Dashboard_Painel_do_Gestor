@@ -13,7 +13,10 @@ from sidebar import load_sidebar, navigate_pages
 import auth_utils  # Importar o módulo de autenticação
 
 # Configuração da página
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide",
+                    page_title="Painel do Gestor",  
+                    page_icon="./src/assets/logo-ogp-favicon.png"  
+)
 
 # Criar um contêiner fixo no topo da página
 header = st.container()
