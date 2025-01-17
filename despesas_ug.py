@@ -210,10 +210,16 @@ def run_dashboard():
     with tab2:
 
         # Função para criar gráficos de barras horizontais
-        def plot_bar_chart(df, group_col, title, x_label, y_label, color='#E55115'):
+        def plot_bar_chart(df, group_col, title, x_label, y_label, color='#E55115', max_chars=90):
+            # Agrupar os dados por coluna e calcular a soma dos valores
             df_grouped = df.groupby(group_col)['VALOR_PAGO'].sum().reset_index()
             df_grouped['VALOR_PAGO_FORMATADO'] = df_grouped['VALOR_PAGO'].apply(
                 lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else "R$ 0,00"
+            )
+            
+            # Truncar as descrições longas para o limite de caracteres especificado
+            df_grouped[group_col] = df_grouped[group_col].apply(
+                lambda x: (x[:max_chars] + "...") if len(x) > max_chars else x
             )
 
             # Criar o gráfico de barras horizontais com a cor especificada
@@ -282,6 +288,12 @@ def run_dashboard():
         # Gráfico de Barras: Despesas por Favorecido
         df_favorecido = df_filtered.groupby('NOME_FAVORECIDO')['VALOR_PAGO'].sum().reset_index()
         df_favorecido = df_favorecido.sort_values(by='VALOR_PAGO', ascending=False).head(10)  # Exibir os 10 maiores favorecidos
+        
+        # Limitar os nomes dos favorecidos a 90 caracteres
+        df_favorecido['NOME_FAVORECIDO'] = df_favorecido['NOME_FAVORECIDO'].apply(
+            lambda x: (x[:90] + '...') if len(x) > 90 else x
+        )
+
         df_favorecido['VALOR_PAGO_FORMATADO'] = df_favorecido['VALOR_PAGO'].apply(
             lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if pd.notnull(x) else "R$ 0,00"
         )
