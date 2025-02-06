@@ -130,6 +130,20 @@ def load_parquet_data_from_drive():
 
     return pd.concat(data_frames, ignore_index=True)
 
+# Função principal para carregar os dados de despesas e diárias
+def load_data():
+    # Apenas uma mensagem de carregamento para a primeira chamada
+    loading_message = st.empty()
+    loading_message.info("Carregando os dados... Isso pode demorar um pouco.")
+
+    # Chamar a função com cache
+    data = load_parquet_data_from_drive()
+
+    # Remover a mensagem de carregamento após os dados serem carregados
+    loading_message.empty()
+
+    return data
+
 # Função para carregar arquivos de contratos (sem alterações)
 @st.cache_resource
 def load_contracts_data():
@@ -206,16 +220,53 @@ def load_servidores_data():
 
     return df_servidores
 
-# Função principal para carregar os dados de despesas e diárias
-def load_data():
-    # Apenas uma mensagem de carregamento para a primeira chamada
-    loading_message = st.empty()
-    loading_message.info("Carregando os dados... Isso pode demorar um pouco.")
+# Função para listar arquivos .parquet na pasta de dotação no Google Drive
+def list_dotacao_files(service):
+    DOTACAO_FOLDER_ID = config['DOTACAO_FOLDER_ID']
+    
+    results = service.files().list(
+        q=f"'{DOTACAO_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'",
+        fields="files(id, name)"
+    ).execute()
+    folders = results.get('files', [])
+    
+    dotacao_files = []
+    for folder in folders:
+        folder_id = folder['id']
+        # Listar os arquivos dentro de cada pasta de ano
+        year_files = service.files().list(
+            q=f"'{folder_id}' in parents and mimeType='application/octet-stream'",
+            fields="files(id, name)"
+        ).execute()
+        for file in year_files.get('files', []):
+            if file['name'].endswith('.parquet'):
+                dotacao_files.append(file)
+    
+    return dotacao_files
 
-    # Chamar a função com cache
-    data = load_parquet_data_from_drive()
+# Função para carregar arquivos de dotação do Google Drive
+@st.cache_resource
+def load_dotacao_data():
+    service = get_drive_service()
+    dotacao_files = list_dotacao_files(service)
+    
+    if not dotacao_files:
+        st.error('Nenhum arquivo .parquet encontrado na pasta de dotação do Google Drive.')
+        return pd.DataFrame()
+    
+    # Carregar todos os arquivos .parquet e concatenar
+    data_frames = []
+    #total_files = len(dotacao_files)
+    
+    # Inicializar a barra de progresso
+    #progress_bar = st.progress(0)
+    #for idx, file in enumerate(dotacao_files):
+    for file in dotacao_files:
+        file_content = download_file_from_drive(service, file['id'])
+        data_frames.append(pq.read_table(file_content).to_pandas())
 
-    # Remover a mensagem de carregamento após os dados serem carregados
-    loading_message.empty()
-
-    return data
+        # Atualizar a barra de progresso
+        #progress_percentage = (idx + 1) / total_files
+        #progress_bar.progress(progress_percentage)
+    
+    return pd.concat(data_frames, ignore_index=True)

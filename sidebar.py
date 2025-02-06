@@ -10,7 +10,74 @@ def render_logout_button():
 def load_sidebar(df, dashboard_name):
     # Exibe o botão de logout no sidebar
     render_logout_button()
-    
+
+    # ========= FILTROS DO DASHBOARD DE ORÇAMENTO =========
+    if dashboard_name == "Orçamento":
+        # Normalizar os nomes das colunas para evitar problemas de case sensitivity
+        df.columns = df.columns.str.strip().str.upper()
+
+        required_columns = {"ANO", "UG", "DESCRICAO_UG", "MES"}
+
+        # Verifica se todas as colunas necessárias existem no dataset
+        if not required_columns.issubset(set(df.columns)):
+            st.error("Erro: O dataset não contém as colunas necessárias para filtros de Orçamento.")
+            return None
+
+        # Carregar o CSV contendo UG, descrição e sigla (se necessário)
+        df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
+
+        # Mapeamento UG -> Descrição
+        ugs_interesse = df_ug_info["UG"].tolist()
+        descricao_ugs_interesse = df_ug_info["SIGLA_UG"].tolist()
+
+        # Combinar as opções de UG e SIGLA para exibição clara
+        options_combined = [
+            f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse, descricao_ugs_interesse)
+        ]
+
+        # Definir uma UG padrão como nos outros dashboards
+        ug_padrao = [410512]
+
+        # ==========================
+        # MULTISELECT PARA UG (SEGUINDO A MESMA LÓGICA)
+        # ==========================
+        selected_ug_sigla = st.sidebar.multiselect(
+            "Selecione a UG ou a SIGLA de interesse:",
+            options=options_combined,
+            default=[f"{ug} - {descricao_ugs_interesse[ugs_interesse.index(ug)]}" for ug in ug_padrao]
+        )
+
+        # Separar as UGs selecionadas
+        selected_ugs = [int(option.split(" - ")[0]) for option in selected_ug_sigla]
+
+        # ==========================
+        # SLIDER PARA ANO (SEGUINDO A MESMA LÓGICA)
+        # ==========================
+        min_ano = int(df["ANO"].min())
+        max_ano = int(df["ANO"].max())
+
+        selected_ano = st.sidebar.slider(
+            "Selecione o Ano:",
+            min_value=min_ano,
+            max_value=max_ano,
+            value=(min_ano, max_ano)
+        )
+
+        # ==========================
+        # SLIDER PARA MÊS (SEGUINDO A MESMA LÓGICA)
+        # ==========================
+        min_mes = 1
+        max_mes = 12
+
+        selected_mes = st.sidebar.slider(
+            "Selecione o Mês:",
+            min_value=min_mes,
+            max_value=max_mes,
+            value=(min_mes, max_mes)
+        )
+
+        return selected_ugs, selected_ano, selected_mes
+
      # ========= FILTROS DOS SERVIDORES =========
 
     if dashboard_name == 'Servidores':
@@ -199,7 +266,7 @@ def load_sidebar(df, dashboard_name):
 def navigate_pages():
     page = st.sidebar.radio(
         'Navegação',
-        ('Início', 'Despesas Detalhado', 'Diárias', 'Contratos', 'Servidores'), #'Adiantamentos', 'Combustível', 'Orçamento'),
+        ('Início', 'Despesas Detalhado', 'Diárias', 'Contratos', 'Servidores','Orçamento'), #'Adiantamentos', 'Combustível', ),
     )
     
     return page
