@@ -17,6 +17,26 @@ def format_value_abbr(value):
     else:
         return f"{value:.2f}"
 
+# Função para formatar valores como moeda brasileira
+def formatar_moeda(valor):
+    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+# Dicionário de mapeamento das colunas para nomes formatados
+colunas_formatadas = {
+    "ANO": "Ano",
+    "MES": "Mês",
+    "DESCRICAO_UG": "Descrição da UG",
+    "DESCRICAO_FUNCAO": "Descrição da Função",
+    "DESCRICAO_NATUREZA3": "Natureza da Despesa",
+    "DESCRICAO_NATUREZA4": "Detalhe da Despesa",
+    "DESCRICAO_NATUREZA5": "Categoria da Despesa",
+    "DESCRICAO_NATUREZA6": "Especificação da Despesa",
+    "VALOR_DOTACAO_INICIAL": "Valor da Dotação Inicial",
+    "VALOR_EMPENHADO": "Valor Empenhado",
+    "VALOR_LIQUIDADO": "Valor Liquidado",
+    "VALOR_PAGO": "Valor Pago"
+}
+
 def run_dashboard():
     # Carregar dados de dotação orçamentária e despesas
     df_dotacao = load_dotacao_data()
@@ -97,7 +117,7 @@ def run_dashboard():
         col3.metric("Reduzido", f"R$ {total_reduzido:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
         col4.metric("Dotação Atualizada", f"R$ {total_dotacao_atualizada:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
-        st.subheader("Comparação da Dotação e Despesas")
+        #st.subheader("Comparação da Dotação e Despesas")
 
         # Agregar valores por ano
         df_execucao = df_dotacao_filtered.groupby("ANO")[["VALOR_ATUALIZADO", "VALOR_EMPENHADO", "VALOR_LIQUIDADO", "VALOR_PAGO"]].sum().reset_index()
@@ -140,63 +160,63 @@ def run_dashboard():
         # Exibir gráfico no Streamlit
         st.plotly_chart(fig_execucao_completa, use_container_width=True)
 
-        # st.subheader("Restos a Pagar por Ano")
-        df_restos_pagar = df_despesas_filtered.groupby("ANO").agg({
-            "VALOR_EMPENHADO": "sum", 
-            "VALOR_LIQUIDADO": "sum", 
-            "VALOR_PAGO": "sum"
-        }).reset_index()
+        # # st.subheader("Restos a Pagar por Ano")
+        # df_restos_pagar = df_despesas_filtered.groupby("ANO").agg({
+        #     "VALOR_EMPENHADO": "sum", 
+        #     "VALOR_LIQUIDADO": "sum", 
+        #     "VALOR_PAGO": "sum"
+        # }).reset_index()
         
 
-    # **Correção da lógica:**
-        df_restos_pagar["RP_INSCRITOS"] = df_restos_pagar["VALOR_EMPENHADO"] - df_restos_pagar["VALOR_PAGO"]
-        df_restos_pagar["RP_PAGOS"] = df_restos_pagar["VALOR_PAGO"]
-        df_restos_pagar["RP_TOTAL"] = df_restos_pagar["RP_INSCRITOS"] + df_restos_pagar["RP_PAGOS"]  # Soma total
+    # # **Correção da lógica:**
+    #     df_restos_pagar["RP_INSCRITOS"] = df_restos_pagar["VALOR_EMPENHADO"] - df_restos_pagar["VALOR_PAGO"]
+    #     df_restos_pagar["RP_PAGOS"] = df_restos_pagar["VALOR_PAGO"]
+    #     df_restos_pagar["RP_TOTAL"] = df_restos_pagar["RP_INSCRITOS"] + df_restos_pagar["RP_PAGOS"]  # Soma total
 
-        # Renomear colunas para exibição correta na legenda
-        df_restos_pagar = df_restos_pagar.rename(columns={
-            "RP_INSCRITOS": "Inscritos",
-            "RP_PAGOS": "Pagos"
-        })
+    #     # Renomear colunas para exibição correta na legenda
+    #     df_restos_pagar = df_restos_pagar.rename(columns={
+    #         "RP_INSCRITOS": "Inscritos",
+    #         "RP_PAGOS": "Pagos"
+    #     })
 
-        # Criar gráfico de barras com nomes ajustados
-        fig_rp_inscritos_pagos = px.bar(
-            df_restos_pagar, x="ANO", y=["Inscritos", "Pagos"],
-            title="RP Inscritos x RP Pagos por Ano",
-            labels={"value": "Valor (R$)", "ANO": "Ano", "variable": "Tipo de RP"},
-            barmode="group",
-            color_discrete_map={"Inscritos": "#095AA2", "Pagos": "#538cbe"}
-        )
+    #     # Criar gráfico de barras com nomes ajustados
+    #     fig_rp_inscritos_pagos = px.bar(
+    #         df_restos_pagar, x="ANO", y=["Inscritos", "Pagos"],
+    #         title="RP Inscritos x RP Pagos por Ano",
+    #         labels={"value": "Valor (R$)", "ANO": "Ano", "variable": "Tipo de RP"},
+    #         barmode="group",
+    #         color_discrete_map={"Inscritos": "#095AA2", "Pagos": "#538cbe"}
+    #     )
 
-        # Adicionar valores abreviados acima das barras
-        for trace, column in zip(fig_rp_inscritos_pagos.data, ["Inscritos", "Pagos"]):
-            trace.text = df_restos_pagar[column].apply(lambda x: format_value_abbr(x))
-            trace.textposition = "outside"
+    #     # Adicionar valores abreviados acima das barras
+    #     for trace, column in zip(fig_rp_inscritos_pagos.data, ["Inscritos", "Pagos"]):
+    #         trace.text = df_restos_pagar[column].apply(lambda x: format_value_abbr(x))
+    #         trace.textposition = "outside"
 
-        # Adicionar linha indicadora azul escura com suavização
-        fig_rp_inscritos_pagos.add_trace(
-            px.line(df_restos_pagar, x="ANO", y="RP_TOTAL", markers=True, line_shape="spline").data[0]
-        )
-        fig_rp_inscritos_pagos.data[-1].update(
-            line=dict(color="#FCDC20", width=3),
-            name="Soma Total",
-            marker=dict(size=8, symbol="circle", color="#FCDC20")  # Marcadores arredondados
-        )
+    #     # Adicionar linha indicadora azul escura com suavização
+    #     fig_rp_inscritos_pagos.add_trace(
+    #         px.line(df_restos_pagar, x="ANO", y="RP_TOTAL", markers=True, line_shape="spline").data[0]
+    #     )
+    #     fig_rp_inscritos_pagos.data[-1].update(
+    #         line=dict(color="#FCDC20", width=3),
+    #         name="Soma Total",
+    #         marker=dict(size=8, symbol="circle", color="#FCDC20")  # Marcadores arredondados
+    #     )
 
-        # Adicionar valores da soma total acima do grupo de barras
-        for i, ano in enumerate(df_restos_pagar["ANO"]):
-            total_value = df_restos_pagar.loc[df_restos_pagar["ANO"] == ano, "RP_TOTAL"].values[0]
-            total_abbr = format_value_abbr(total_value)
+    #     # Adicionar valores da soma total acima do grupo de barras
+    #     for i, ano in enumerate(df_restos_pagar["ANO"]):
+    #         total_value = df_restos_pagar.loc[df_restos_pagar["ANO"] == ano, "RP_TOTAL"].values[0]
+    #         total_abbr = format_value_abbr(total_value)
             
-            fig_rp_inscritos_pagos.add_annotation(
-                x=ano, y=total_value,
-                text=f"<b>{total_abbr}</b>",
-                showarrow=False,
-                font=dict(size=12, color="white"),
-                yshift=15
-            )
+    #         fig_rp_inscritos_pagos.add_annotation(
+    #             x=ano, y=total_value,
+    #             text=f"<b>{total_abbr}</b>",
+    #             showarrow=False,
+    #             font=dict(size=12, color="white"),
+    #             yshift=15
+    #         )
 
-        st.plotly_chart(fig_rp_inscritos_pagos, use_container_width=True)
+    #     st.plotly_chart(fig_rp_inscritos_pagos, use_container_width=True)
 
         # ================= Tabela para Comparação da Dotação e Execução Financeira =================
         st.subheader("📋 Tabela: Comparação da Dotação e Execução Financeira por Ano")
@@ -215,34 +235,142 @@ def run_dashboard():
             "VALOR_PAGO": "Pago"
         }))
 
-        # ================= Tabela para RP Inscritos x RP Pagos =================
-        st.subheader("📋 Tabela: RP Inscritos x RP Pagos por Ano")
+        # # ================= Tabela para RP Inscritos x RP Pagos =================
+        # st.subheader("Tabela: RP Inscritos x RP Pagos por Ano")
 
-        df_restos_pagar_table = df_restos_pagar.copy()
-        df_restos_pagar_table["Inscritos"] = df_restos_pagar_table["Inscritos"].apply(lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
-        df_restos_pagar_table["Pagos"] = df_restos_pagar_table["Pagos"].apply(lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        # df_restos_pagar_table = df_restos_pagar.copy()
+        # df_restos_pagar_table["Inscritos"] = df_restos_pagar_table["Inscritos"].apply(lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        # df_restos_pagar_table["Pagos"] = df_restos_pagar_table["Pagos"].apply(lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
-        st.dataframe(df_restos_pagar_table.rename(columns={
-            "ANO": "Ano",
-            "Inscritos": "Restos a Pagar Inscritos",
-            "Pagos": "Restos a Pagar Pagos"
-        }))
-
+        # st.dataframe(df_restos_pagar_table.rename(columns={
+        #     "ANO": "Ano",
+        #     "Inscritos": "Restos a Pagar Inscritos",
+        #     "Pagos": "Restos a Pagar Pagos"
+        # }))
 
 
     # ================= TAB 2: DISTRIBUIÇÃO DA DOTAÇÃO =================
     with tab2:
-        st.subheader("🏛 Distribuição Orçamentária")
+       
+        # Calcular total da dotação apenas considerando valores na NATUREZA3
+        total_natureza3 = df_dotacao_filtered["VALOR_DOTACAO_INICIAL"].sum()
 
-        # Dotação por Poder
-        df_poder = df_dotacao_filtered.groupby("PODER")["VALOR_DOTACAO_INICIAL"].sum().reset_index()
-        fig_poder = px.pie(df_poder, names="PODER", values="VALOR_DOTACAO_INICIAL", title="Distribuição da Dotação por Poder")
-        st.plotly_chart(fig_poder, use_container_width=True)
+        # Filtrar os valores por categoria de despesa com base em DESCRICAO_NATUREZA3
+        custeio = df_dotacao_filtered[df_dotacao_filtered["DESCRICAO_NATUREZA3"] == "OUTRAS DESPESAS CORRENTES"]["VALOR_DOTACAO_INICIAL"].sum()
+        investimentos = df_dotacao_filtered[df_dotacao_filtered["DESCRICAO_NATUREZA3"] == "INVESTIMENTOS"]["VALOR_DOTACAO_INICIAL"].sum()
+        pessoal = df_dotacao_filtered[df_dotacao_filtered["DESCRICAO_NATUREZA3"] == "PESSOAL E ENCARGOS SOCIAIS"]["VALOR_DOTACAO_INICIAL"].sum()
 
-        # Dotação por Unidade Orçamentária (UO)
-        df_uo = df_dotacao_filtered.groupby("UO")["VALOR_DOTACAO_INICIAL"].sum().reset_index().nlargest(10, "VALOR_DOTACAO_INICIAL")
-        fig_uo = px.bar(df_uo, x="VALOR_DOTACAO_INICIAL", y="UO", title="Top 10 Unidades Orçamentárias", orientation="h")
-        st.plotly_chart(fig_uo, use_container_width=True)
+        # Corrigir cálculo da métrica "Outros"
+        outros = total_natureza3 - (custeio + investimentos + pessoal)
+
+        # Exibir métricas no layout de colunas
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Custeio", f"R$ {custeio:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        col2.metric("Investimentos", f"R$ {investimentos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        col3.metric("Pessoal", f"R$ {pessoal:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        col4.metric("Outros", f"R$ {outros:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+
+        # Criar um layout de duas colunas para os gráficos
+        col1, col2 = st.columns(2)
+        with col1:
+            # Criar DataFrame para o Gráfico de Pizza
+            df_pizza = pd.DataFrame({
+                "Categoria": ["Custeio", "Investimentos", "Pessoal", "Outros"], 
+                "Valor": [custeio, investimentos, pessoal, outros]
+            })
+
+            # Formatar os valores em moeda brasileira
+            df_pizza["Valor_Formatado"] = df_pizza["Valor"].apply(lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+
+            # Criar o Gráfico de Pizza com tooltip formatado corretamente
+            fig_pizza = px.pie(
+                df_pizza, 
+                names="Categoria", 
+                values="Valor", 
+                title="Distribuição das Despesas da Natureza 3",
+                hole=0.3  # Estilo Donut (removível se necessário)
+            )
+
+            # Customizar Tooltip para exibir apenas categoria e valor formatado como moeda brasileira
+            fig_pizza.update_traces(
+                textinfo="label+percent", 
+                hovertemplate="<b>%{label}</b><br>%{customdata}<extra></extra>",
+                customdata=df_pizza["Valor_Formatado"]
+            )
+
+            # Exibir o gráfico no Streamlit
+            st.plotly_chart(fig_pizza, use_container_width=True)
+
+
+
+        with col2:
+            # Gráfico de Linha: Evolução Temporal das Despesas com suavização
+            df_evolucao = df_dotacao_filtered.groupby("ANO")["VALOR_DOTACAO_INICIAL"].sum().reset_index()
+
+            # Formatar os valores como moeda brasileira
+            df_evolucao["Valor_Formatado"] = df_evolucao["VALOR_DOTACAO_INICIAL"].apply(lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+
+            fig_linha = px.line(
+                df_evolucao, 
+                x="ANO", 
+                y="VALOR_DOTACAO_INICIAL", 
+                markers=True, 
+                title="Evolução da Dotação ao Longo dos Anos"
+            )
+
+            # Suavizar a linha e formatar o tooltip
+            fig_linha.update_traces(
+                line_shape='spline',  # Suavizar linha
+                hovertemplate="<b>%{x}</b><br>%{customdata}<extra></extra>",  # Mostrar Ano e Valor formatado
+                customdata=df_evolucao["Valor_Formatado"]
+            )
+
+            # Atualizar rótulo do eixo Y
+            fig_linha.update_layout(
+                yaxis_title="Valor da Dotação Inicial"
+            )
+
+            st.plotly_chart(fig_linha, use_container_width=True)
+
+
+        # Criar um dicionário para mapear os nomes simplificados para os valores reais
+        mapeamento_categorias = {
+            "Custeio": "OUTRAS DESPESAS CORRENTES",
+            "Investimentos": "INVESTIMENTOS",
+            "Pessoal": "PESSOAL E ENCARGOS SOCIAIS",
+            "Outros": None  # "Outros" será tratado separadamente
+        }
+
+        # Multiselect para escolha das categorias
+        selecao = st.multiselect("Selecione as categorias para exibir detalhes:", list(mapeamento_categorias.keys()))
+
+        # Filtrar os dados com base na seleção
+        if selecao:
+            valores_selecionados = [mapeamento_categorias[c] for c in selecao if mapeamento_categorias[c] is not None]
+            df_selecionado = df_dotacao_filtered[df_dotacao_filtered["DESCRICAO_NATUREZA3"].isin(valores_selecionados)]
+            
+            # Adicionar "Outros" separadamente
+            if "Outros" in selecao:
+                df_outros = df_dotacao_filtered[~df_dotacao_filtered["DESCRICAO_NATUREZA3"].isin(["OUTRAS DESPESAS CORRENTES", "INVESTIMENTOS", "PESSOAL E ENCARGOS SOCIAIS"])]
+                df_selecionado = pd.concat([df_selecionado, df_outros])
+
+            # Selecionar apenas as colunas mais relevantes
+            colunas_interessantes = list(colunas_formatadas.keys())
+            df_selecionado = df_selecionado[colunas_interessantes]
+
+            # Renomear colunas
+            df_selecionado = df_selecionado.rename(columns=colunas_formatadas)
+
+            # Formatar colunas numéricas
+            df_selecionado["Ano"] = df_selecionado["Ano"].astype(int)  # Garantir que apareça sem formatação extra
+            colunas_moeda = ["Valor da Dotação Inicial", "Valor Empenhado", "Valor Liquidado", "Valor Pago"]
+            
+            for coluna in colunas_moeda:
+                df_selecionado[coluna] = df_selecionado[coluna].apply(formatar_moeda)
+
+            # Exibir a tabela formatada
+            st.dataframe(df_selecionado)
+
 
     # ================= TAB 3: EVOLUÇÃO TEMPORAL =================
     with tab3:
