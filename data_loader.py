@@ -8,8 +8,8 @@ import json
 import toml
 
 # Carregar configurações do arquivo TOML
-#config = toml.load('config.toml')
-config = st.secrets
+config = toml.load('config.toml')
+#config = st.secrets
 
 # Caminho para o arquivo de credenciais da conta de serviço
 CREDENTIALS_FILE = json.loads(config['CREDENTIALS_FILE'])
@@ -269,4 +269,47 @@ def load_dotacao_data():
         #progress_percentage = (idx + 1) / total_files
         #progress_bar.progress(progress_percentage)
     
+    return pd.concat(data_frames, ignore_index=True)
+
+# Função para listar arquivos .parquet na pasta de restos a pagar no Google Drive
+def list_restos_files(service):
+    RESTOS_FOLDER_ID = config['RESTOS_FOLDER_ID']
+    
+    results = service.files().list(
+        q=f"'{RESTOS_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'",
+        fields="files(id, name)"
+    ).execute()
+    folders = results.get('files', [])
+    
+    restos_files = []
+    for folder in folders:
+        folder_id = folder['id']
+        # Listar os arquivos dentro de cada pasta de ano
+        year_files = service.files().list(
+            q=f"'{folder_id}' in parents and mimeType='application/octet-stream'",
+            fields="files(id, name)"
+        ).execute()
+        for file in year_files.get('files', []):
+            if file['name'].endswith('.parquet'):
+                restos_files.append(file)
+    
+    return restos_files
+
+# Função para carregar arquivos de restos a pagar do Google Drive
+@st.cache_resource
+def load_restos_data():
+    service = get_drive_service()
+    restos_files = list_restos_files(service)
+    
+    if not restos_files:
+        st.error('Nenhum arquivo .parquet encontrado na pasta de restos a pagar do Google Drive.')
+        return pd.DataFrame()
+    
+    # Carregar todos os arquivos .parquet e concatenar
+    data_frames = []
+    
+    for file in restos_files:
+        file_content = download_file_from_drive(service, file['id'])
+        data_frames.append(pq.read_table(file_content).to_pandas())
+
     return pd.concat(data_frames, ignore_index=True)
