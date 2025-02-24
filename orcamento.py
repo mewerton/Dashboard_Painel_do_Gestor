@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from sidebar import load_sidebar
 from data_loader import load_dotacao_data, load_data, load_restos_data   # Importa bases de DOTAÇÃO e DESPESAS
 
@@ -122,7 +123,7 @@ def run_dashboard():
     # Criar TABS para organizar os gráficos
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "Visão Geral", "Distribuição da Dotação", "Restos a Pagar", 
-        "Execução Orçamentária", "Análises Complementares"
+        "Execução Orçamentária", "Indicadores Orçamentários"
     ])
 
        # ================= TAB 1: VISÃO GERAL =================
@@ -208,6 +209,7 @@ def run_dashboard():
 
             # Exibir tabela
             st.dataframe(df_execucao_table)
+
 
 
     # ================= TAB 2: DISTRIBUIÇÃO DA DOTAÇÃO =================
@@ -410,7 +412,6 @@ def run_dashboard():
         # Exibir gráfico atualizado
         st.plotly_chart(fig_restos, use_container_width=True)
 
-
         # ================= Tabela reordenada =================
         st.subheader("Tabela Completa de Restos a Pagar por Ano")
 
@@ -441,40 +442,201 @@ def run_dashboard():
             "VALOR_A_PAGAR": "Valor a Pagar"
         })
 
-        # Exibir tabela final
-        st.dataframe(df_restos_table)
+        #  Remover linhas vazias no final da tabela
+        df_restos_table = df_restos_table.loc[df_restos_table.iloc[:, 1:].notna().any(axis=1)]
 
+        #  Exibir a tabela formatada ocupando toda a largura
+        st.dataframe(
+            df_restos_table.style.set_properties(**{'width': '100%'}),
+            use_container_width=True
+        )
 
 
     # ================= TAB 4: EXECUÇÃO ORÇAMENTÁRIA =================
     with tab4:
-        st.subheader("⚖️ Comparação da Dotação e Despesas")
 
-        # Cálculo do Percentual de Execução da Dotação
-        df_execucao = df_dotacao_filtered.groupby("ANO")["VALOR_DOTACAO_INICIAL"].sum().reset_index()
-        df_execucao_despesas = df_despesas_filtered.groupby("ANO")["VALOR_EMPENHADO"].sum().reset_index()
-        df_execucao = pd.merge(df_execucao, df_execucao_despesas, on="ANO", how="left").fillna(0)
-        df_execucao["PERCENTUAL_EXECUCAO"] = (df_execucao["VALOR_EMPENHADO"] / df_execucao["VALOR_DOTACAO_INICIAL"]) * 100
+        # Garantir que UG e ANO são do mesmo tipo nos dataframes
+        df_despesas["UG"] = df_despesas["UG"].astype(str)
+        df_despesas["ANO"] = pd.to_numeric(df_despesas["ANO"], errors="coerce")
 
-        fig_execucao = px.bar(
-            df_execucao, x="ANO", y="PERCENTUAL_EXECUCAO",
-            text=df_execucao["PERCENTUAL_EXECUCAO"].apply(lambda x: f"{x:.2f}%"),
-            title="Percentual de Execução da Dotação por Ano",
-            labels={"ANO": "Ano", "PERCENTUAL_EXECUCAO": "Execução (%)"},
-            color="PERCENTUAL_EXECUCAO",
-            color_continuous_scale="Blues"
-        )
-        fig_execucao.update_traces(textposition="outside")
-        st.plotly_chart(fig_execucao, use_container_width=True)
+        df_dotacao["UG"] = df_dotacao["UG"].astype(str)
+        df_dotacao["ANO"] = pd.to_numeric(df_dotacao["ANO"], errors="coerce")
 
-    # ================= TAB 5: ANÁLISES COMPLEMENTARES =================
+        selected_ugs_orcamento = [str(ug) for ug in selected_ugs_orcamento]
+        selected_ano = [int(selected_ano[0]), int(selected_ano[1])]
+
+        # Verificar se os filtros realmente estão funcionando corretamente
+        df_despesas_filtered = df_despesas[
+            (df_despesas["UG"].isin(selected_ugs_orcamento)) & 
+            (df_despesas["ANO"] >= selected_ano[0]) & 
+            (df_despesas["ANO"] <= selected_ano[1])
+        ]
+
+        # Se ainda estiver vazio, mostrar quais UGs e ANOs deveriam ser filtrados
+        if df_despesas_filtered.empty:
+            st.warning("⚠️ Não há dados disponíveis para exibição com os filtros aplicados.")
+            st.write("🔍 Debug: Nenhum dado encontrado para UGs e ANO selecionados")
+ 
+        # Verificar se os DataFrames filtrados estão vazios
+        if df_dotacao_filtered.empty or df_despesas_filtered.empty:
+            st.warning("⚠️ Não há dados disponíveis para exibição com os filtros aplicados.")
+        else:
+            # Agregar valores por ano para cálculo da execução financeira
+            df_execucao_financeira = df_dotacao_filtered.groupby("ANO").agg({
+                "VALOR_DOTACAO_INICIAL": "sum",
+                "VALOR_CREDITO_ADICIONAL": "sum",
+                "VALOR_REMANEJAMENTO": "sum",
+                "VALOR_ATUALIZADO": "sum"
+            }).reset_index()
+
+            df_despesas_agg = df_despesas_filtered.groupby("ANO").agg({
+                "VALOR_EMPENHADO": "sum",
+                "VALOR_LIQUIDADO": "sum",
+                "VALOR_PAGO": "sum"
+            }).reset_index()
+
+            # Mesclar os dados de execução financeira com os dados de despesas
+            df_execucao_financeira = df_execucao_financeira.merge(df_despesas_agg, on="ANO", how="left").fillna(0)
+
+            # Calcular percentuais de execução
+            df_execucao_financeira["% Execução Empenhada"] = (df_execucao_financeira["VALOR_EMPENHADO"] / df_execucao_financeira["VALOR_ATUALIZADO"]) * 100
+            df_execucao_financeira["% Liquidação"] = (df_execucao_financeira["VALOR_LIQUIDADO"] / df_execucao_financeira["VALOR_ATUALIZADO"]) * 100
+            df_execucao_financeira["% Pagamento"] = (df_execucao_financeira["VALOR_PAGO"] / df_execucao_financeira["VALOR_ATUALIZADO"]) * 100
+
+            # Evitar divisão por zero e corrigir valores infinitos
+            df_execucao_financeira.replace([float('inf'), float('-inf')], 0, inplace=True)
+            df_execucao_financeira.fillna(0, inplace=True)
+
+            # Criar um DataFrame para o gráfico de barras
+            df_execucao_melted = df_execucao_financeira.melt(
+                id_vars=["ANO"],
+                value_vars=["% Execução Empenhada", "% Liquidação", "% Pagamento"],
+                var_name="Métrica",
+                value_name="Percentual"
+            )
+
+            # Criar gráfico de barras agrupadas
+            fig_percentual_execucao = px.bar(
+                df_execucao_melted,
+                x="ANO",
+                y="Percentual",
+                color="Métrica",
+                barmode="group",
+                text=df_execucao_melted["Percentual"].apply(lambda x: f"{x:.1f}%"),
+                title="Comparação dos Percentuais de Execução por Ano",
+                labels={"ANO": "Ano", "Percentual": "Percentual (%)", "Métrica": "Tipo de Execução"},
+                color_discrete_sequence=px.colors.sequential.Purpor_r
+            )
+
+            # Ajustes visuais
+            fig_percentual_execucao.update_traces(textposition="outside")
+            fig_percentual_execucao.update_layout(yaxis=dict(title="Percentual (%)", tickformat=".1f"))
+
+            # Exibir gráfico acima da tabela
+            st.plotly_chart(fig_percentual_execucao, use_container_width=True)
+
+            # Formatar valores como moeda brasileira
+            colunas_moeda = [
+                "VALOR_DOTACAO_INICIAL", "VALOR_CREDITO_ADICIONAL", "VALOR_REMANEJAMENTO",
+                "VALOR_ATUALIZADO", "VALOR_EMPENHADO", "VALOR_LIQUIDADO", "VALOR_PAGO"
+            ]
+
+            for coluna in colunas_moeda:
+                df_execucao_financeira[coluna] = df_execucao_financeira[coluna].apply(formatar_moeda)
+
+            # Formatar percentuais com 2 casas decimais
+            colunas_percentuais = ["% Execução Empenhada", "% Liquidação", "% Pagamento"]
+            for coluna in colunas_percentuais:
+                df_execucao_financeira[coluna] = df_execucao_financeira[coluna].apply(lambda x: f"{x:.2f}%")
+
+            # Renomear colunas para exibição
+            df_execucao_financeira.rename(columns={
+                "ANO": "Ano",
+                "VALOR_DOTACAO_INICIAL": "Dotação Inicial",
+                "VALOR_CREDITO_ADICIONAL": "Crédito Adicional",
+                "VALOR_REMANEJAMENTO": "Redução de Dotação",
+                "VALOR_ATUALIZADO": "Dotação Atualizada",
+                "VALOR_EMPENHADO": "Empenhado",
+                "VALOR_LIQUIDADO": "Liquidado",
+                "VALOR_PAGO": "Pago"
+            }, inplace=True)
+
+            # Corrigir tipos para evitar erro de serialização do Apache Arrow
+            for col in df_execucao_financeira.columns:
+                if df_execucao_financeira[col].dtype == 'object':
+                    df_execucao_financeira[col] = df_execucao_financeira[col].astype(str)  # Converter para string
+                elif df_execucao_financeira[col].dtype == 'int64':
+                    df_execucao_financeira[col] = pd.to_numeric(df_execucao_financeira[col], errors='coerce').astype('Int64')  # Garante compatibilidade
+
+            # Remover linhas vazias no final da tabela
+            df_execucao_financeira = df_execucao_financeira.loc[df_execucao_financeira.iloc[:, 1:].notna().any(axis=1)]
+
+            # Exibir a tabela formatada abaixo do gráfico com largura total
+            st.dataframe(
+                df_execucao_financeira.style.set_properties(**{'width': '100%'}),
+                use_container_width=True
+            )
+
+    # ================= TAB 5: INDICADORES =================
     with tab5:
-        st.subheader("📊 Análises Complementares e Comparações")
 
-        # Ranking dos órgãos com maior execução orçamentária
-        df_orgaos = df_despesas_filtered.groupby("UG")["VALOR_EMPENHADO"].sum().reset_index().nlargest(10, "VALOR_EMPENHADO")
-        fig_orgaos = px.bar(df_orgaos, x="UG", y="VALOR_EMPENHADO", title="Top 10 Órgãos com Maior Execução Orçamentária")
-        st.plotly_chart(fig_orgaos, use_container_width=True)
+        st.subheader("Indicadores Orçamentários")
+
+        # Garantir que os valores não sejam zero para evitar divisão por zero
+        valor_dotacao_atualizada = df_dotacao_filtered["VALOR_ATUALIZADO"].sum() or 1  # Se for 0, define como 1
+        valor_empenhado = df_dotacao_filtered["VALOR_EMPENHADO"].sum() or 1
+        valor_liquidado = df_dotacao_filtered["VALOR_LIQUIDADO"].sum()
+        valor_pago = df_dotacao_filtered["VALOR_PAGO"].sum()
+
+        # Cálculo dos percentuais
+        empenho_dotacao = (valor_empenhado / valor_dotacao_atualizada) * 100
+        credito_disponivel = ((valor_dotacao_atualizada - valor_empenhado) / valor_dotacao_atualizada) * 100
+        pagamento_empenho = (valor_pago / valor_empenhado) * 100
+        liquidacao_empenho = (valor_liquidado / valor_empenhado) * 100
+        dotacao_paga = (valor_pago / valor_dotacao_atualizada) * 100
+
+        # Criar colunas para os velocímetros
+        col1, col2, col3 = st.columns(3)
+
+        # Função para criar gráficos velocímetro (Gauge Chart) com valores em R$
+        def criar_gauge(valor_percentual, valor_total, titulo, cor):
+            return go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=valor_percentual,
+                number={"suffix": "%"},  # Mostra o percentual dentro do velocímetro
+                title={
+                    'text': f"<span style='font-size:20px; font-weight:bold;'>{titulo}</span><br><span style='font-size:18px;'>{formatar_moeda(valor_total)}</span>", 
+                    'font': {'size': 16}  # Define tamanho base
+                },  
+                gauge={
+                    'axis': {'range': [0, 100]},
+                    'bar': {'color': cor},
+                    'steps': [
+                        {'range': [0, 50], 'color': "lightgray"},
+                        {'range': [50, 100], 'color': "gray"},
+                    ]
+                }
+            ))
+
+
+        # Criar e exibir os gráficos nos respectivos lugares
+        with col1:
+            st.plotly_chart(criar_gauge(empenho_dotacao, valor_empenhado, "Empenho da Dotação", "#FFD700"), use_container_width=True)
+
+        with col2:
+            st.plotly_chart(criar_gauge(credito_disponivel, valor_dotacao_atualizada - valor_empenhado, "Crédito Disponível", "#00FFFF"), use_container_width=True)
+
+        with col3:
+            st.plotly_chart(criar_gauge(pagamento_empenho, valor_pago, "Pagamento do Empenho", "#32CD32"), use_container_width=True)
+
+        col4, col5 = st.columns(2)
+
+        with col4:
+            st.plotly_chart(criar_gauge(liquidacao_empenho, valor_liquidado, "Liquidação do Empenho", "#FF4500"), use_container_width=True)
+
+        with col5:
+            st.plotly_chart(criar_gauge(dotacao_paga, valor_pago, "Dotação Atualizada Paga", "#9400D3"), use_container_width=True)        
+
 
 if __name__ == "__main__":
     run_dashboard()
