@@ -313,3 +313,87 @@ def load_restos_data():
         data_frames.append(pq.read_table(file_content).to_pandas())
 
     return pd.concat(data_frames, ignore_index=True)
+
+# Função para listar arquivos .parquet na pasta de adiantamentos no Google Drive
+def list_adiantamentos_files(service):
+    ADIANTAMENTOS_FOLDER_ID = config['ADIANTAMENTOS_FOLDER_ID']
+    
+    results = service.files().list(
+        q=f"'{ADIANTAMENTOS_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'",
+        fields="files(id, name)"
+    ).execute()
+    folders = results.get('files', [])
+
+    adiantamentos_files = []
+
+    for folder in folders:
+        folder_id = folder['id']
+        # Listar os arquivos dentro de cada pasta de ano
+        year_files = service.files().list(
+            q=f"'{folder_id}' in parents and mimeType='application/octet-stream'",
+            fields="files(id, name)"
+        ).execute()
+        for file in year_files.get('files', []):
+            if file['name'].endswith('.parquet'):
+                adiantamentos_files.append(file)
+
+    return adiantamentos_files
+
+# Função para carregar arquivos de adiantamentos do Google Drive
+@st.cache_resource
+def load_adiantamentos_data():
+    service = get_drive_service()
+    adiantamentos_files = list_adiantamentos_files(service)
+
+    if not adiantamentos_files:
+        st.error('Nenhum arquivo .parquet encontrado na pasta de adiantamentos do Google Drive.')
+        return pd.DataFrame()
+
+    # Carregar todos os arquivos .parquet e concatenar
+    data_frames = []
+    total_files = len(adiantamentos_files) 
+
+    # Inicializar a barra de progresso
+    progress_bar = st.progress(0)  
+
+    for idx, file in enumerate(adiantamentos_files):
+        file_content = download_file_from_drive(service, file['id'])
+        data_frames.append(pq.read_table(file_content).to_pandas())
+
+        # Atualizar a barra de progresso
+        progress_percentage = (idx + 1) / total_files  
+        progress_bar.progress(progress_percentage)  
+
+    return pd.concat(data_frames, ignore_index=True)
+
+
+# # Função para listar arquivos .parquet na pasta de adiantamentos no Google Drive
+# def list_adiantamentos_files(service):
+#     ADIANTAMENTOS_FOLDER_ID = config['ADIANTAMENTOS_FOLDER_ID']
+    
+#     # Buscar diretamente os arquivos .parquet na pasta de adiantamentos
+#     results = service.files().list(
+#         q=f"'{ADIANTAMENTOS_FOLDER_ID}' in parents and name contains '.parquet'",
+#         fields="files(id, name)"
+#     ).execute()
+    
+#     return results.get('files', [])
+
+# # Função para carregar arquivos de adiantamentos do Google Drive
+# @st.cache_resource
+# def load_adiantamentos_data():
+#     service = get_drive_service()
+#     adiantamentos_files = list_adiantamentos_files(service)
+    
+#     if not adiantamentos_files:
+#         st.error('Nenhum arquivo .parquet encontrado na pasta de adiantamentos do Google Drive.')
+#         return pd.DataFrame()
+    
+#     # Carregar todos os arquivos .parquet e concatenar
+#     data_frames = []
+    
+#     for file in adiantamentos_files:
+#         file_content = download_file_from_drive(service, file['id'])
+#         data_frames.append(pq.read_table(file_content).to_pandas())
+
+#     return pd.concat(data_frames, ignore_index=True)
