@@ -41,8 +41,9 @@ colunas_formatadas = {
 def run_dashboard():
     # Carregar dados de dotação orçamentária e despesas
     df_dotacao = load_dotacao_data()
-    df_despesas = load_data()
+    df_despesas = load_data().copy()
     df_restos = load_restos_data()
+
 
     if df_dotacao.empty or df_despesas.empty or df_restos.empty:
         st.error("Erro: Dados não carregados corretamente. Verifique se os arquivos .parquet estão na pasta correta no Google Drive.")
