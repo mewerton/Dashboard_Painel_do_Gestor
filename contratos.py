@@ -7,9 +7,6 @@ from sidebar import load_sidebar
 from data_loader import load_contracts_data
 #from chatbot import render_chatbot  # Importar a função do chatbot
 
-# Configurar o locale para português do Brasil
-#locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-
 # Tente definir o locale para pt_BR. Se falhar, use o locale padrão do sistema
 try:
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -28,7 +25,22 @@ colunas_exibicao = {
     'DATA_FIM_VIGENCIA': 'Fim da Vigência',
     'DSC_SITUACAO': 'Situação'
 }
-    
+
+# Funções para formatação
+def formatar_valor(valor):
+    """Formatar o valor como moeda no padrão brasileiro."""
+    if pd.notnull(valor):
+        return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return 'R$ 0,00'
+
+def formatar_numero(numero):
+    """Formatar números inteiros com zeros à esquerda."""
+    return str(int(numero)).zfill(8)
+
+def formatar_data(data):
+    """Formatar data no formato DD/MM/AAAA."""
+    return pd.to_datetime(data).dt.strftime('%d/%m/%Y')
+
 def run_dashboard():
     # Carregar os datasets de contratos e aditivos usando o data_loader
     df_aditivos, df_contratos = load_contracts_data()
@@ -38,7 +50,7 @@ def run_dashboard():
         return
 
     # Carregar o sidebar específico para contratos
-    selected_ugs, selected_data_inicio, selected_data_fim = load_sidebar(df_contratos, dashboard_name='Contratos')
+    selected_ugs, selected_ug_sigla_contratos, selected_data_inicio, selected_data_fim, selected_situacoes = load_sidebar(df_contratos, dashboard_name='Contratos')
     
     # Chame o chatbot para renderizar no sidebar
     #render_chatbot()
@@ -51,6 +63,9 @@ def run_dashboard():
                                 (df_contratos['DATA_INICIO_VIGENCIA'] <= pd.to_datetime(selected_data_inicio[1]))]
     df_contratos = df_contratos[(df_contratos['DATA_FIM_VIGENCIA'] >= pd.to_datetime(selected_data_fim[0])) &
                                 (df_contratos['DATA_FIM_VIGENCIA'] <= pd.to_datetime(selected_data_fim[1]))]
+    
+    # Aplicar filtro de situação do contrato
+    df_contratos = df_contratos[df_contratos['DSC_SITUACAO'].isin(selected_situacoes)]
 
     # Eliminar a coluna DIAS_VENCIDOS e linhas em branco na coluna DSC_SITUACAO
     df_contratos = df_contratos.drop(columns=['DIAS_VENCIDOS'])
@@ -77,16 +92,18 @@ def run_dashboard():
     if df_contratos['VALOR_PERCENTUAL_TERCEIR'].dtype == 'object':
         df_contratos['VALOR_PERCENTUAL_TERCEIR'] = df_contratos['VALOR_PERCENTUAL_TERCEIR'].str.replace('%', '').astype(float) / 100
 
-    # Adicionar métricas ao painel
-    selected_ug_description = "Descrição não encontrada"
-    
-    if selected_ugs:
-        # Obter a descrição da UG selecionada
-        ug_descriptions = df_contratos[df_contratos['UG'].isin(selected_ugs)]['DESCRICAO_UG'].unique()
-        if len(ug_descriptions) > 0:
-            selected_ug_description = ug_descriptions[0]  # Pegue a primeira descrição encontrada
 
-    # Exibir o subtítulo com a descrição da UG selecionada
+    # Adicionar métricas ao painel
+    if "TODAS" in selected_ug_sigla_contratos:
+        selected_ug_description = "TODOS ÓRGÃOS"
+    else:
+        selected_ug_description = "Descrição não encontrada"
+        if selected_ugs:
+            ug_descriptions = df_contratos[df_contratos['UG'].isin(selected_ugs)]['DESCRICAO_UG'].unique()
+            if len(ug_descriptions) > 0:
+                selected_ug_description = ug_descriptions[0]  # Pegue a primeira descrição encontrada
+
+    # Exibir o subtítulo com a descrição da UG selecionada ou "TODOS ÓRGÃOS"
     st.markdown(f'<h3 style="font-size:20px;"> {selected_ug_description}</h3>', unsafe_allow_html=True)
 
      
@@ -144,24 +161,133 @@ def run_dashboard():
             st.plotly_chart(fig_donut_licitacao)
         
         # Distribuição de contratos
-        fig.update_traces(texttemplate='%{y}', textposition='auto')
-        fig.update_layout(barmode='stack', title='Distribuição de Contratos', xaxis_title='Categoria', yaxis_title='Contagem')
+        fig = go.Figure()
+
+        # Lista de categorias que queremos exibir (removendo "Contratante")
+        categorias_permitidas = ['DSC_SITUACAO', 'NOM_TIPO_LICITACAO', 'NATUREZA_CONTRATO']
+
+        # Criar os gráficos apenas para as categorias permitidas
+        if 'DSC_SITUACAO' in df_contratos.columns:
+            df_situacao = df_contratos.groupby('DSC_SITUACAO').agg(
+                quantidade=('CODIGO_CONTRATO', 'count'),
+                valor_total=('VALOR_TOTAL', 'sum')
+            ).reset_index()
+
+            # Formatar os valores para exibição no hover
+            df_situacao['valor_formatado'] = df_situacao['valor_total'].apply(formatar_valor)
+
+            fig.add_trace(go.Bar(
+                x=df_situacao['DSC_SITUACAO'],
+                y=df_situacao['quantidade'],
+                name='Situação',
+                text=df_situacao['quantidade'],  # Mantém o número de contratos visível
+                textposition="outside",  # Garante que os números apareçam fora da barra
+                hovertext=df_situacao.apply(lambda row: f"Quantidade: {row['quantidade']}<br>Valor Total: {row['valor_formatado']}", axis=1),
+                hoverinfo="text"
+            ))
+
+        if 'NOM_TIPO_LICITACAO' in df_contratos.columns:
+            df_licitacao = df_contratos.groupby('NOM_TIPO_LICITACAO').agg(
+                quantidade=('CODIGO_CONTRATO', 'count'),
+                valor_total=('VALOR_TOTAL', 'sum')
+            ).reset_index()
+
+            df_licitacao['valor_formatado'] = df_licitacao['valor_total'].apply(formatar_valor)
+
+            fig.add_trace(go.Bar(
+                x=df_licitacao['NOM_TIPO_LICITACAO'],
+                y=df_licitacao['quantidade'],
+                name='Tipo de Licitação',
+                text=df_licitacao['quantidade'],
+                textposition="outside",
+                hovertext=df_licitacao.apply(lambda row: f"Quantidade: {row['quantidade']}<br>Valor Total: {row['valor_formatado']}", axis=1),
+                hoverinfo="text"
+            ))
+
+        if 'NATUREZA_CONTRATO' in df_contratos.columns:
+            df_natureza = df_contratos.groupby('NATUREZA_CONTRATO').agg(
+                quantidade=('CODIGO_CONTRATO', 'count'),
+                valor_total=('VALOR_TOTAL', 'sum')
+            ).reset_index()
+
+            df_natureza['valor_formatado'] = df_natureza['valor_total'].apply(formatar_valor)
+
+            fig.add_trace(go.Bar(
+                x=df_natureza['NATUREZA_CONTRATO'],
+                y=df_natureza['quantidade'],
+                name='Natureza',
+                text=df_natureza['quantidade'],
+                textposition="outside",
+                hovertext=df_natureza.apply(lambda row: f"Quantidade: {row['quantidade']}<br>Valor Total: {row['valor_formatado']}", axis=1),
+                hoverinfo="text"
+            ))
+
+        # Atualizar layout
+        fig.update_layout(
+            barmode='stack',
+            title='Distribuição de Contratos',
+            xaxis_title='Categoria',
+            yaxis_title='Contagem'
+        )
+
+        # Exibir o gráfico no Streamlit
         st.plotly_chart(fig, use_container_width=True)
 
-    # Funções para formatação
-    def formatar_valor(valor):
-        """Formatar o valor como moeda no padrão brasileiro."""
-        if pd.notnull(valor):
-            return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-        return 'R$ 0,00'
+        # Calcular a quantidade de contratos e valor total por UG
+        df_ug_contratos = df_contratos.groupby('UG').agg(
+            quantidade=('CODIGO_CONTRATO', 'count'),
+            valor_total=('VALOR_TOTAL', 'sum')
+        ).reset_index()
 
-    def formatar_numero(numero):
-        """Formatar números inteiros com zeros à esquerda."""
-        return str(int(numero)).zfill(8)
+        # Filtrar apenas UGs com pelo menos 1 contrato
+        df_ug_contratos = df_ug_contratos[df_ug_contratos['quantidade'] > 0]
 
-    def formatar_data(data):
-        """Formatar data no formato DD/MM/AAAA."""
-        return pd.to_datetime(data).dt.strftime('%d/%m/%Y')
+        # Mapear a sigla da UG usando o dataset original
+        df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
+        df_ug_contratos = df_ug_contratos.merge(df_ug_info[['UG', 'SIGLA_UG']], on='UG', how='left')
+
+        # Ordenar os valores por quantidade de contratos
+        df_ug_contratos = df_ug_contratos.sort_values(by='quantidade', ascending=True)
+
+        # Formatar valores para exibição
+        df_ug_contratos['valor_formatado'] = df_ug_contratos['valor_total'].apply(lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        df_ug_contratos['label'] = df_ug_contratos.apply(lambda row: f"Quantidade: {row['quantidade']} | Valor: {row['valor_formatado']}", axis=1)
+
+        # Definir altura dinâmica do gráfico (mínimo de 400, máximo de 1200)
+        altura_minima_por_barra = 30  # Mantém um tamanho mínimo adequado para cada barra
+        altura_base = 400  # Altura mínima do gráfico
+        altura_maxima = 2400  # Altura máxima do gráfico
+
+        altura_grafico = max(altura_base, min(altura_maxima, len(df_ug_contratos) * altura_minima_por_barra))
+
+        # Criar gráfico de barras horizontais garantindo que os rótulos fiquem visíveis corretamente
+        fig_ug_contratos = go.Figure(go.Bar(
+            y=df_ug_contratos['SIGLA_UG'],  # Sigla da UG no eixo Y
+            x=df_ug_contratos['quantidade'],  # Quantidade de contratos no eixo X
+            orientation='h',  # Barras horizontais
+            marker=dict(color='#095aa2'),  # Cor das barras
+            text=df_ug_contratos['label'],  # Texto dentro das barras
+            textposition='auto',  # Deixa o Plotly decidir se coloca dentro ou fora conforme o espaço
+            insidetextfont=dict(size=12),  # Define o tamanho mínimo da fonte dentro da barra
+            outsidetextfont=dict(size=12)  # Mantém o tamanho da fonte fora da barra se necessário
+        ))
+
+        fig_ug_contratos.update_layout(
+            title="Quantidade de Contratos por UG",
+            xaxis_title="Quantidade de Contratos",
+            yaxis_title="UG (Sigla)",
+            height=altura_grafico,  # Define altura dinâmica
+            yaxis=dict(
+                tickfont=dict(size=12),  # Mantém a fonte das siglas no eixo Y legível
+            ),
+            # paper_bgcolor="rgba(0,0,0,0)",  # Define o fundo do gráfico como transparente
+            # plot_bgcolor="rgba(0,0,0,0)"  # Define o fundo interno do gráfico como transparente
+        )
+
+        # Exibir o gráfico no Streamlit
+        st.plotly_chart(fig_ug_contratos, use_container_width=True)
+
+
 
     # Aplicar as funções nas abas
     with tab2:
@@ -250,9 +376,6 @@ def run_dashboard():
 
             valor_total_aditivos = df_aditivos_filtrados['VALOR'].sum()
             st.markdown(f"**Valor total dos Aditivos/Reajustes filtrados: {formatar_valor(valor_total_aditivos)}**")
-
-
-
 
 
 if __name__ == "__main__":

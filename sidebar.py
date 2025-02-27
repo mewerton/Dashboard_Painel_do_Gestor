@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from chatbot import render_chatbot
+from datetime import datetime, timedelta
 #from streamlit_option_menu import option_menu
 
 def render_logout_button():
@@ -278,7 +279,243 @@ def load_sidebar(df, dashboard_name):
 
     #     return selected_ugs_contratos, selected_data_inicio, selected_data_fim
 
-        # ========= FILTROS DE CONTRATOS =========
+    #     # ========= FILTROS DE CONTRATOS =========
+    # elif dashboard_name == 'Contratos':
+    #     # Carregar o CSV contendo UG, descrição e sigla
+    #     df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
+
+    #     # Mapeamento UG -> Descrição e Sigla
+    #     ugs_interesse_contratos = df_ug_info['UG'].tolist()
+    #     siglas_ugs_interesse = df_ug_info['SIGLA_UG'].tolist()
+
+    #     # Adicionando a opção "TODAS" na lista de seleção
+    #     options_combined_contratos = ["TODAS"] + [
+    #         f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse_contratos, siglas_ugs_interesse)
+    #     ]
+
+    #     # Definir uma UG padrão
+    #     ugs_default_contratos = [410512]
+
+    #     # Filtro para seleção de UG ou Sigla
+    #     selected_ug_sigla_contratos = st.sidebar.multiselect(
+    #         'Selecione a UG ou a SIGLA de interesse:',
+    #         options=options_combined_contratos,
+    #         default=[f"{ug} - {siglas_ugs_interesse[ugs_interesse_contratos.index(ug)]}" for ug in ugs_default_contratos]
+    #     )
+
+    #     # Verificar se "TODAS" foi selecionado
+    #     if "TODAS" in selected_ug_sigla_contratos:
+    #         selected_ugs_contratos = ugs_interesse_contratos  # Seleciona todas as UGs
+    #     else:
+    #         # Separar as UGs selecionadas (caso não tenha selecionado "TODAS")
+    #         selected_ugs_contratos = [
+    #             int(option.split(" - ")[0]) for option in selected_ug_sigla_contratos
+    #         ]
+
+    #     # Conversão de timestamps para datetime
+    #     df['DATA_INICIO_VIGENCIA'] = pd.to_datetime(df['DATA_INICIO_VIGENCIA'], unit='ms')
+    #     df['DATA_FIM_VIGENCIA'] = pd.to_datetime(df['DATA_FIM_VIGENCIA'], unit='ms')
+
+    #     min_data_inicio = df['DATA_INICIO_VIGENCIA'].min().date()
+    #     max_data_inicio = df['DATA_INICIO_VIGENCIA'].max().date()
+    #     selected_data_inicio = st.sidebar.slider(
+    #         'Selecione o período de início da vigência:',
+    #         min_value=min_data_inicio,
+    #         max_value=max_data_inicio,
+    #         value=(min_data_inicio, max_data_inicio)
+    #     )
+
+    #     min_data_fim = df['DATA_FIM_VIGENCIA'].min().date()
+    #     max_data_fim = df['DATA_FIM_VIGENCIA'].max().date()
+    #     selected_data_fim = st.sidebar.slider(
+    #         'Selecione o período de fim da vigência:',
+    #         min_value=min_data_fim,
+    #         max_value=max_data_fim,
+    #         value=(min_data_fim, max_data_fim)
+    #     )
+
+    #     return selected_ugs_contratos, selected_data_inicio, selected_data_fim
+
+    # # ========= FILTROS DE CONTRATOS =========
+    # elif dashboard_name == 'Contratos':
+    #     # Carregar o CSV contendo UG, descrição e sigla
+    #     df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
+
+    #     # Mapeamento UG -> Descrição e Sigla
+    #     ugs_interesse_contratos = df_ug_info['UG'].tolist()
+    #     siglas_ugs_interesse = df_ug_info['SIGLA_UG'].tolist()
+
+    #     # Adicionando a opção "TODAS" na lista de seleção
+    #     options_combined_contratos = ["TODAS"] + [
+    #         f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse_contratos, siglas_ugs_interesse)
+    #     ]
+
+    #     # Definir uma UG padrão
+    #     ugs_default_contratos = [410512]
+
+    #     # Filtro para seleção de UG ou Sigla
+    #     selected_ug_sigla_contratos = st.sidebar.multiselect(
+    #         'Selecione a UG ou a SIGLA de interesse:',
+    #         options=options_combined_contratos,
+    #         default=[f"{ug} - {siglas_ugs_interesse[ugs_interesse_contratos.index(ug)]}" for ug in ugs_default_contratos]
+    #     )
+
+    #     # Verificar se "TODAS" foi selecionado
+    #     if "TODAS" in selected_ug_sigla_contratos:
+    #         selected_ugs_contratos = ugs_interesse_contratos  # Seleciona todas as UGs
+    #     else:
+    #         # Separar as UGs selecionadas (caso não tenha selecionado "TODAS")
+    #         selected_ugs_contratos = [
+    #             int(option.split(" - ")[0]) for option in selected_ug_sigla_contratos
+    #         ]
+
+    #     # Conversão de timestamps para datetime
+    #     df['DATA_INICIO_VIGENCIA'] = pd.to_datetime(df['DATA_INICIO_VIGENCIA'], unit='ms')
+    #     df['DATA_FIM_VIGENCIA'] = pd.to_datetime(df['DATA_FIM_VIGENCIA'], unit='ms')
+
+    #     min_data_inicio = df['DATA_INICIO_VIGENCIA'].min().date()
+    #     max_data_inicio = df['DATA_INICIO_VIGENCIA'].max().date()
+    #     selected_data_inicio = st.sidebar.slider(
+    #         'Selecione o período de início da vigência:',
+    #         min_value=min_data_inicio,
+    #         max_value=max_data_inicio,
+    #         value=(min_data_inicio, max_data_inicio)
+    #     )
+
+    #     min_data_fim = df['DATA_FIM_VIGENCIA'].min().date()
+    #     max_data_fim = df['DATA_FIM_VIGENCIA'].max().date()
+    #     selected_data_fim = st.sidebar.slider(
+    #         'Selecione o período de fim da vigência:',
+    #         min_value=min_data_fim,
+    #         max_value=max_data_fim,
+    #         value=(min_data_fim, max_data_fim)
+    #     )
+
+    #     # Novo filtro para a Situação do Contrato (DSC_SITUACAO)
+    #     situacoes_disponiveis = df['DSC_SITUACAO'].dropna().unique().tolist()
+    #     situacoes_disponiveis.sort()
+    #       # Adicionando opção "TODAS"
+        
+    #     selected_situacao = st.sidebar.multiselect(
+    #         'Selecione a Situação do Contrato:',
+    #         options=situacoes_disponiveis,
+    #         default=situacoes_disponiveis
+    #     )
+
+    #     # Verificar se "TODAS" foi selecionado
+    #     if "TODAS" in selected_situacao:
+    #         selected_situacoes = situacoes_disponiveis[1:]  # Seleciona todas as situações
+    #     else:
+    #         selected_situacoes = selected_situacao  # Apenas as selecionadas
+
+    #     return selected_ugs_contratos, selected_ug_sigla_contratos, selected_data_inicio, selected_data_fim, selected_situacoes
+
+
+    # # ========= FILTROS DE CONTRATOS =========
+    # if dashboard_name == 'Contratos':
+    #     # Carregar o CSV contendo UG, descrição e sigla
+    #     df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
+
+    #     # Mapeamento UG -> Descrição e Sigla
+    #     ugs_interesse_contratos = df_ug_info['UG'].tolist()
+    #     siglas_ugs_interesse = df_ug_info['SIGLA_UG'].tolist()
+
+    #     # Adicionando a opção "TODAS" na lista de seleção
+    #     options_combined_contratos = ["TODAS"] + [
+    #         f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse_contratos, siglas_ugs_interesse)
+    #     ]
+
+    #     # Definir uma UG padrão
+    #     ugs_default_contratos = [410512]
+
+    #     # Filtro para seleção de UG ou Sigla
+    #     selected_ug_sigla_contratos = st.sidebar.multiselect(
+    #         'Selecione a UG ou a SIGLA de interesse:',
+    #         options=options_combined_contratos,
+    #         default=[f"{ug} - {siglas_ugs_interesse[ugs_interesse_contratos.index(ug)]}" for ug in ugs_default_contratos]
+    #     )
+
+    #     # Verificar se "TODAS" foi selecionado
+    #     if "TODAS" in selected_ug_sigla_contratos:
+    #         selected_ugs_contratos = ugs_interesse_contratos  # Seleciona todas as UGs
+    #     else:
+    #         # Separar as UGs selecionadas (caso não tenha selecionado "TODAS")
+    #         selected_ugs_contratos = [
+    #             int(option.split(" - ")[0]) for option in selected_ug_sigla_contratos
+    #         ]
+
+    #     # Conversão de timestamps para datetime
+    #     df['DATA_INICIO_VIGENCIA'] = pd.to_datetime(df['DATA_INICIO_VIGENCIA'], unit='ms')
+    #     df['DATA_FIM_VIGENCIA'] = pd.to_datetime(df['DATA_FIM_VIGENCIA'], unit='ms')
+
+    #     today = datetime.today().date()
+
+    #     # Seletor de período fixo para início da vigência
+    #     periodo_inicio_options = {
+    #         "Nenhum": None,
+    #         "Últimos 30 dias": today - timedelta(days=30),
+    #         "Últimos 60 dias": today - timedelta(days=60),
+    #         "Últimos 90 dias": today - timedelta(days=90)
+    #     }
+
+    #     selected_periodo_inicio = st.sidebar.radio(
+    #         "Filtro Rápido - Início da Vigência:",
+    #         options=list(periodo_inicio_options.keys()),
+    #         index=0  # Nenhum selecionado por padrão
+    #     )
+
+    #     # Seletor de período fixo para fim da vigência
+    #     periodo_fim_options = {
+    #         "Nenhum": None,
+    #         "Próximos 30 dias": today + timedelta(days=30),
+    #         "Próximos 60 dias": today + timedelta(days=60),
+    #         "Próximos 90 dias": today + timedelta(days=90)
+    #     }
+
+    #     selected_periodo_fim = st.sidebar.radio(
+    #         "Filtro Rápido - Fim da Vigência:",
+    #         options=list(periodo_fim_options.keys()),
+    #         index=0  # Nenhum selecionado por padrão
+    #     )
+
+    #     # Se não houver período fixo selecionado, ativa o filtro de data manual
+    #     if periodo_inicio_options[selected_periodo_inicio] is None:
+    #         min_data_inicio = df['DATA_INICIO_VIGENCIA'].min().date()
+    #         max_data_inicio = df['DATA_INICIO_VIGENCIA'].max().date()
+    #         selected_data_inicio = st.sidebar.slider(
+    #             'Selecione o período de início da vigência:',
+    #             min_value=min_data_inicio,
+    #             max_value=max_data_inicio,
+    #             value=(min_data_inicio, max_data_inicio)
+    #         )
+    #     else:
+    #         selected_data_inicio = (periodo_inicio_options[selected_periodo_inicio], today)
+
+    #     if periodo_fim_options[selected_periodo_fim] is None:
+    #         min_data_fim = df['DATA_FIM_VIGENCIA'].min().date()
+    #         max_data_fim = df['DATA_FIM_VIGENCIA'].max().date()
+    #         selected_data_fim = st.sidebar.slider(
+    #             'Selecione o período de fim da vigência:',
+    #             min_value=min_data_fim,
+    #             max_value=max_data_fim,
+    #             value=(min_data_fim, max_data_fim)
+    #         )
+    #     else:
+    #         selected_data_fim = (today, periodo_fim_options[selected_periodo_fim])
+
+    #     # Novo filtro para a Situação do Contrato (DSC_SITUACAO)
+    #     situacoes_disponiveis = df['DSC_SITUACAO'].dropna().unique().tolist()
+    #     situacoes_disponiveis.sort()
+
+    #     selected_situacoes = st.sidebar.multiselect(
+    #         'Selecione a Situação do Contrato:',
+    #         options=situacoes_disponiveis,
+    #         default=situacoes_disponiveis
+    #     )
+
+    #     return selected_ugs_contratos, selected_ug_sigla_contratos, selected_data_inicio, selected_data_fim, selected_situacoes
+
+    # ========= FILTROS DE CONTRATOS =========
     elif dashboard_name == 'Contratos':
         # Carregar o CSV contendo UG, descrição e sigla
         df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
@@ -315,25 +552,65 @@ def load_sidebar(df, dashboard_name):
         df['DATA_INICIO_VIGENCIA'] = pd.to_datetime(df['DATA_INICIO_VIGENCIA'], unit='ms')
         df['DATA_FIM_VIGENCIA'] = pd.to_datetime(df['DATA_FIM_VIGENCIA'], unit='ms')
 
-        min_data_inicio = df['DATA_INICIO_VIGENCIA'].min().date()
-        max_data_inicio = df['DATA_INICIO_VIGENCIA'].max().date()
-        selected_data_inicio = st.sidebar.slider(
-            'Selecione o período de início da vigência:',
-            min_value=min_data_inicio,
-            max_value=max_data_inicio,
-            value=(min_data_inicio, max_data_inicio)
+        today = datetime.today().date()
+
+        # Opções para filtros rápidos de períodos
+        periodo_opcoes = {
+            "Últimos 30 dias": today - timedelta(days=30),
+            "Últimos 60 dias": today - timedelta(days=60),
+            "Últimos 90 dias": today - timedelta(days=90)
+        }
+
+        # Seletor de múltiplos períodos para início da vigência
+        selected_periodos_inicio = st.sidebar.multiselect(
+            "Filtro Rápido - Início da Vigência:",
+            options=list(periodo_opcoes.keys()),
+            default=[]
         )
 
-        min_data_fim = df['DATA_FIM_VIGENCIA'].min().date()
-        max_data_fim = df['DATA_FIM_VIGENCIA'].max().date()
-        selected_data_fim = st.sidebar.slider(
-            'Selecione o período de fim da vigência:',
-            min_value=min_data_fim,
-            max_value=max_data_fim,
-            value=(min_data_fim, max_data_fim)
+        # Seletor de múltiplos períodos para fim da vigência
+        selected_periodos_fim = st.sidebar.multiselect(
+            "Filtro Rápido - Fim da Vigência:",
+            options=list(periodo_opcoes.keys()),
+            default=[]
         )
 
-        return selected_ugs_contratos, selected_data_inicio, selected_data_fim
+        # Definir as datas com base nos períodos selecionados
+        if selected_periodos_inicio:
+            selected_data_inicio = (min([periodo_opcoes[p] for p in selected_periodos_inicio]), today)
+        else:
+            min_data_inicio = df['DATA_INICIO_VIGENCIA'].min().date()
+            max_data_inicio = df['DATA_INICIO_VIGENCIA'].max().date()
+            selected_data_inicio = st.sidebar.slider(
+                'Selecione o período de início da vigência:',
+                min_value=min_data_inicio,
+                max_value=max_data_inicio,
+                value=(min_data_inicio, max_data_inicio)
+            )
+
+        if selected_periodos_fim:
+            selected_data_fim = (today, max([today + timedelta(days=int(p.split(" ")[1])) for p in selected_periodos_fim]))
+        else:
+            min_data_fim = df['DATA_FIM_VIGENCIA'].min().date()
+            max_data_fim = df['DATA_FIM_VIGENCIA'].max().date()
+            selected_data_fim = st.sidebar.slider(
+                'Selecione o período de fim da vigência:',
+                min_value=min_data_fim,
+                max_value=max_data_fim,
+                value=(min_data_fim, max_data_fim)
+            )
+
+        # Novo filtro para a Situação do Contrato (DSC_SITUACAO)
+        situacoes_disponiveis = df['DSC_SITUACAO'].dropna().unique().tolist()
+        situacoes_disponiveis.sort()
+
+        selected_situacoes = st.sidebar.multiselect(
+            'Selecione a Situação do Contrato:',
+            options=situacoes_disponiveis,
+            default=situacoes_disponiveis
+        )
+
+        return selected_ugs_contratos, selected_ug_sigla_contratos, selected_data_inicio, selected_data_fim, selected_situacoes
 
     
     # ========= FILTROS DE DESPESAS E DIÁRIAS =========
