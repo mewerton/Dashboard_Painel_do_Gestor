@@ -109,6 +109,7 @@ def run_dashboard():
      
     # Dividindo em abas
     tab1, tab2, tab3 = st.tabs(["Métricas dos Contratos", "Distribuição por Licitação", "Detalhes e Aditivos"])
+    
 
     with tab1:
         # Obter a quantidade de contratos e valor total
@@ -279,14 +280,11 @@ def run_dashboard():
             height=altura_grafico,  # Define altura dinâmica
             yaxis=dict(
                 tickfont=dict(size=12),  # Mantém a fonte das siglas no eixo Y legível
-            ),
-            # paper_bgcolor="rgba(0,0,0,0)",  # Define o fundo do gráfico como transparente
-            # plot_bgcolor="rgba(0,0,0,0)"  # Define o fundo interno do gráfico como transparente
+            )
         )
 
         # Exibir o gráfico no Streamlit
         st.plotly_chart(fig_ug_contratos, use_container_width=True)
-
 
 
     # Aplicar as funções nas abas

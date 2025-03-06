@@ -8,7 +8,7 @@ import json
 import toml
 
 # Carregar configurações do arquivo TOML
-#config = toml.load('config.toml')
+#config = toml.load('secrets.toml')
 config = st.secrets
 
 # Caminho para o arquivo de credenciais da conta de serviço

@@ -23,7 +23,8 @@ servidores copy.py
 
 # Ignorar a pasta venv (ambiente virtual Python)
 venv/
-config.toml
+#config.toml
+secrets.toml
 
 # Ignorar arquivos de cache Python
 __pycache__/
