@@ -404,7 +404,6 @@ def run_dashboard():
             st.plotly_chart(fig_credores, use_container_width=True)
 
             # ==================== GRÁFICO 2: TOP 10 UNIDADES GESTORAS ====================
-            #st.subheader("Top 10 Unidades Gestoras com Maior Valor de Adiantamentos")
 
             # Agregar valores por Unidade Gestora (UG)
             df_ug = df_filtered.groupby("DESCRICAO_UG")["VALOR_ADIANTAMENTOS_COMPROVADOS"].sum().reset_index()
