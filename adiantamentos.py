@@ -9,6 +9,10 @@ from data_loader import load_adiantamentos_data
 # Ativar a configuração para evitar downcasting futuro no Pandas
 pd.set_option('future.no_silent_downcasting', True)
 
+# Função para formatar valores como moeda brasileira
+def formatar_moeda(valor):
+    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
 # Função para formatar valores abreviados
 def format_value_abbr(value):
     if value >= 1e12:
@@ -21,11 +25,7 @@ def format_value_abbr(value):
         return f"{value / 1e3:.1f}K"
     else:
         return f"{value:.2f}"
-
-# Função para formatar valores como moeda brasileira
-def formatar_moeda(valor):
-    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
+    
 # Dicionário de mapeamento das colunas para nomes formatados
 colunas_formatadas_adiantamentos = {
     "ANO": "Ano",
@@ -43,7 +43,6 @@ colunas_formatadas_adiantamentos = {
     "VALOR_ADIANTAMENTOS_COMPROVADOS": "Valor de Adiantamentos Comprovados"
 }
 
-
 def run_dashboard():
     # Carregar dados usando o módulo centralizado
     df_adiantamentos = load_adiantamentos_data()
@@ -52,18 +51,28 @@ def run_dashboard():
         st.error("Nenhum dado foi carregado. Por favor, verifique os arquivos de entrada.")
         return
 
-    # Carregar o sidebar
-    selected_ugs, selected_ano, selected_mes = load_sidebar(df_adiantamentos, "Adiantamentos")
+    # Carregar o sidebar específico para adiantamentos
+    selected_ugs, selected_ug_sigla, selected_ano, selected_mes, selected_sigla = load_sidebar(df_adiantamentos, "Adiantamentos")
 
-    # Filtrar os dados conforme seleção
-    df_filtered = df_adiantamentos[
-        (df_adiantamentos["ANO"].between(selected_ano[0], selected_ano[1])) &
-        (df_adiantamentos["NUM_MES"].between(selected_mes[0], selected_mes[1])) &
-        (df_adiantamentos["UG"].astype(str).isin(map(str, selected_ugs)))
-    ].copy()  # <- Adicionando .copy() aqui evita o erro!
+    # Aplicar filtros ao dataframe de adiantamentos
+    if "TODAS" in selected_ug_sigla:
+        df_filtered = df_adiantamentos[
+            (df_adiantamentos["ANO"].between(selected_ano[0], selected_ano[1])) &
+            (df_adiantamentos["NUM_MES"].between(selected_mes[0], selected_mes[1]))
+        ].copy()
+    else:
+        df_filtered = df_adiantamentos[
+            (df_adiantamentos["ANO"].between(selected_ano[0], selected_ano[1])) &
+            (df_adiantamentos["NUM_MES"].between(selected_mes[0], selected_mes[1])) &
+            (df_adiantamentos["UG"].astype(str).isin(map(str, selected_ugs)))
+        ].copy()
+
+    # Exibir o subtítulo com a sigla da UG selecionada ou "TODOS ÓRGÃOS"
+    st.markdown(f'<h3 style="font-size:20px;"> {selected_sigla}</h3>', unsafe_allow_html=True)
 
     # Criar tabs para organização dos gráficos
     tab1, tab2, tab3, tab4 = st.tabs(["Visão Geral", "Eficiência", "Órgãos & Credores", "Comparativos"])
+
 
     # ========= TAB 1: VISÃO GERAL =========
     with tab1:
@@ -350,54 +359,7 @@ def run_dashboard():
         # Exibir gráfico no Streamlit
         st.plotly_chart(fig_eficiencia_ug, use_container_width=True)
 
-        # # ========= GRÁFICO: Eficiência na Comprovação =========
-        # st.subheader("Relação entre Valor do Adiantamento e Eficiência na Comprovação")
-
-        # # Criar um novo dataframe para análise de eficiência
-        # df_eficiencia = df_filtered.copy()
-
-        # # Substituir valores ausentes por 0 para evitar problemas
-        # df_eficiencia["VALOR_ADIANTAMENTOS_A_COMPROVAR"].fillna(0, inplace=True)
-        # df_eficiencia["VALOR_ADIANTAMENTOS_COMPROVADOS"].fillna(0, inplace=True)
-
-        # # Calcular a eficiência de cada registro (evitar divisão por zero)
-        # df_eficiencia["Eficiência (%)"] = df_eficiencia.apply(
-        #     lambda row: (row["VALOR_ADIANTAMENTOS_COMPROVADOS"] / row["VALOR_ADIANTAMENTOS_A_COMPROVAR"] * 100)
-        #     if row["VALOR_ADIANTAMENTOS_A_COMPROVAR"] > 0 else None, axis=1
-        # )
-
-        # # Remover possíveis valores NaN antes do gráfico
-        # df_eficiencia = df_eficiencia.dropna(subset=["Eficiência (%)"])
-
-        # # Criar gráfico de dispersão com linha de tendência
-        # fig_eficiencia = px.scatter(
-        #     df_eficiencia,
-        #     x="VALOR_ADIANTAMENTOS_A_COMPROVAR",
-        #     y="Eficiência (%)",
-        #     title="Correlação entre Valor do Adiantamento e Eficiência na Comprovação",
-        #     labels={
-        #         "VALOR_ADIANTAMENTOS_A_COMPROVAR": colunas_formatadas_adiantamentos["VALOR_ADIANTAMENTOS_A_COMPROVAR"],
-        #         "Eficiência (%)": "Eficiência na Comprovação (%)"
-        #     },
-        #     trendline="ols",  # Adiciona uma linha de regressão para tendência
-        #     color_discrete_sequence=["#FFAA33"]  # Cor vibrante para destacar os pontos
-        # )
-
-        # # Ajustar hover para mostrar valores formatados corretamente
-        # fig_eficiencia.update_traces(
-        #     hovertemplate=f"{colunas_formatadas_adiantamentos['VALOR_ADIANTAMENTOS_A_COMPROVAR']}: %{{x}}<br>Eficiência: %{{y:.2f}}%"
-        # )
-
-        # # Ajustar layout do gráfico
-        # fig_eficiencia.update_layout(
-        #     xaxis_title=colunas_formatadas_adiantamentos["VALOR_ADIANTAMENTOS_A_COMPROVAR"],
-        #     yaxis_title="Eficiência (%)",
-        #     showlegend=False
-        # )
-
-        # # Exibir gráfico no Streamlit
-        # st.plotly_chart(fig_eficiencia, use_container_width=True)
-
+       
     with tab3:
 
         if not df_filtered.empty:
@@ -480,32 +442,43 @@ def run_dashboard():
 
 
 
-            # ==================== GRÁFICO 3: DISTRIBUIÇÃO PERCENTUAL POR ÓRGÃO ====================
+        # ==================== GRÁFICO 3: DISTRIBUIÇÃO PERCENTUAL POR ÓRGÃO ====================
 
-            # Agregar valores por UG para distribuição percentual
-            df_ug_percentual = df_filtered.groupby("DESCRICAO_UG")["VALOR_ADIANTAMENTOS_COMPROVADOS"].sum().reset_index()
+        # Agregar valores por UG para distribuição percentual
+        df_ug_percentual = df_filtered.groupby("DESCRICAO_UG")["VALOR_ADIANTAMENTOS_COMPROVADOS"].sum().reset_index()
 
-            # Formatar os valores para exibição no hover
-            df_ug_percentual["VALOR_FORMATADO"] = df_ug_percentual["VALOR_ADIANTAMENTOS_COMPROVADOS"].apply(formatar_moeda)
+        # Formatar os valores para exibição no hover
+        df_ug_percentual["VALOR_FORMATADO"] = df_ug_percentual["VALOR_ADIANTAMENTOS_COMPROVADOS"].apply(formatar_moeda)
 
-            # Criar gráfico de pizza com hover formatado
-            fig_pizza = px.pie(
-                df_ug_percentual, 
-                values="VALOR_ADIANTAMENTOS_COMPROVADOS", 
-                names="DESCRICAO_UG",
-                title="Distribuição Percentual de Adiantamentos por Órgão",
-                labels={"DESCRICAO_UG": colunas_formatadas_adiantamentos["DESCRICAO_UG"]},
-                hole=0.4,  # Formato de rosca
-                color_discrete_sequence=px.colors.sequential.Turbo
-            )
+        # Definir altura dinâmica do gráfico
+        num_ugs = len(df_ug_percentual)  # Quantidade de UGs
+        altura_minima = 400  # Altura mínima do gráfico
+        altura_maxima = 1600  # Altura máxima do gráfico
+        altura_por_ug = 30  # Espaço extra por UG
 
-            # Ajustar tooltip para exibir valor formatado em moeda
-            fig_pizza.update_traces(
-                hovertemplate="<b>%{label}</b><br>Valor: %{customdata}",
-                customdata=df_ug_percentual["VALOR_FORMATADO"]
-            )
+        altura_grafico = min(altura_maxima, max(altura_minima, num_ugs * altura_por_ug))
 
-            st.plotly_chart(fig_pizza, use_container_width=True)
+        # Criar gráfico de pizza com hover formatado
+        fig_pizza = px.pie(
+            df_ug_percentual, 
+            values="VALOR_ADIANTAMENTOS_COMPROVADOS", 
+            names="DESCRICAO_UG",
+            title="Distribuição Percentual de Adiantamentos por Órgão",
+            labels={"DESCRICAO_UG": colunas_formatadas_adiantamentos["DESCRICAO_UG"]},
+            hole=0.4,  # Formato de rosca
+            color_discrete_sequence=px.colors.sequential.Turbo
+        )
+
+        # Ajustar tooltip para exibir valor formatado em moeda
+        fig_pizza.update_traces(
+            hovertemplate="<b>%{label}</b><br>Valor: %{customdata}",
+            customdata=df_ug_percentual["VALOR_FORMATADO"]
+        )
+
+        # Ajustar altura do gráfico
+        fig_pizza.update_layout(height=altura_grafico)
+
+        st.plotly_chart(fig_pizza, use_container_width=True)
 
 
     # ========= TAB 4: COMPARATIVOS =========

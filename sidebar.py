@@ -12,6 +12,74 @@ def load_sidebar(df, dashboard_name):
     # Exibe o botão de logout no sidebar
     render_logout_button()
 
+    # # ========= FILTROS DO DASHBOARD DE ADIANTAMENTOS =========
+    # if dashboard_name == "Adiantamentos":
+    #     # Normalizar os nomes das colunas para evitar problemas de case sensitivity
+    #     df.columns = df.columns.str.strip().str.upper()
+
+    #     required_columns = {"ANO", "UG", "DESCRICAO_UG", "NUM_MES"}
+
+    #     # Verifica se todas as colunas necessárias existem no dataset
+    #     if not required_columns.issubset(set(df.columns)):
+    #         st.error("Erro: O dataset não contém as colunas necessárias para filtros de Adiantamentos.")
+    #         return None
+
+    #     # Carregar o CSV contendo UG, descrição e sigla (se necessário)
+    #     df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
+
+    #     # Mapeamento UG -> Descrição
+    #     ugs_interesse = df_ug_info["UG"].tolist()
+    #     descricao_ugs_interesse = df_ug_info["SIGLA_UG"].tolist()
+
+    #     # Combinar as opções de UG e SIGLA para exibição clara
+    #     options_combined = [
+    #         f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse, descricao_ugs_interesse)
+    #     ]
+
+    #     # Definir uma UG padrão como nos outros dashboards
+    #     ug_padrao = [410512]
+
+    #     # ==========================
+    #     # MULTISELECT PARA UG (SEGUINDO A MESMA LÓGICA)
+    #     # ==========================
+    #     selected_ug_sigla = st.sidebar.multiselect(
+    #         "Selecione a UG ou a SIGLA de interesse:",
+    #         options=options_combined,
+    #         default=[f"{ug} - {descricao_ugs_interesse[ugs_interesse.index(ug)]}" for ug in ug_padrao]
+    #     )
+
+    #     # Separar as UGs selecionadas
+    #     selected_ugs = [int(option.split(" - ")[0]) for option in selected_ug_sigla]
+
+    #     # ==========================
+    #     # SLIDER PARA ANO (SEGUINDO A MESMA LÓGICA)
+    #     # ==========================
+    #     min_ano = int(df["ANO"].min())
+    #     max_ano = int(df["ANO"].max())
+
+    #     selected_ano = st.sidebar.slider(
+    #         "Selecione o Ano:",
+    #         min_value=min_ano,
+    #         max_value=max_ano,
+    #         value=(min_ano, max_ano)
+    #     )
+
+    #     # ==========================
+    #     # SLIDER PARA MÊS (CONVERTENDO 'NUM_MES' PARA INTEIRO)
+    #     # ==========================
+    #     df["NUM_MES"] = df["NUM_MES"].astype(int)
+
+    #     min_mes = 1
+    #     max_mes = 12
+
+    #     selected_mes = st.sidebar.slider(
+    #         "Selecione o Mês:",
+    #         min_value=min_mes,
+    #         max_value=max_mes,
+    #         value=(min_mes, max_mes)
+    #     )
+
+    #     return selected_ugs, selected_ano, selected_mes
     # ========= FILTROS DO DASHBOARD DE ADIANTAMENTOS =========
     if dashboard_name == "Adiantamentos":
         # Normalizar os nomes das colunas para evitar problemas de case sensitivity
@@ -24,35 +92,46 @@ def load_sidebar(df, dashboard_name):
             st.error("Erro: O dataset não contém as colunas necessárias para filtros de Adiantamentos.")
             return None
 
-        # Carregar o CSV contendo UG, descrição e sigla (se necessário)
+        # Carregar o CSV contendo UG, descrição e sigla
         df_ug_info = pd.read_csv("./database/UGS-COD-NOME-SIGLA.csv")
 
-        # Mapeamento UG -> Descrição
+        # Mapeamento UG -> Sigla
         ugs_interesse = df_ug_info["UG"].tolist()
-        descricao_ugs_interesse = df_ug_info["SIGLA_UG"].tolist()
+        siglas_ugs_interesse = df_ug_info["SIGLA_UG"].tolist()
 
-        # Combinar as opções de UG e SIGLA para exibição clara
-        options_combined = [
-            f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse, descricao_ugs_interesse)
+        # Criar um dicionário UG -> Sigla para facilitar a busca depois
+        dict_ug_sigla = dict(zip(ugs_interesse, siglas_ugs_interesse))
+
+        # Adicionando a opção "TODAS" na lista de seleção
+        options_combined = ["TODAS"] + [
+            f"{ug} - {sigla}" for ug, sigla in zip(ugs_interesse, siglas_ugs_interesse)
         ]
 
-        # Definir uma UG padrão como nos outros dashboards
+        # Definir uma UG padrão
         ug_padrao = [410512]
 
         # ==========================
-        # MULTISELECT PARA UG (SEGUINDO A MESMA LÓGICA)
+        # MULTISELECT PARA UG COM OPÇÃO "TODAS"
         # ==========================
         selected_ug_sigla = st.sidebar.multiselect(
             "Selecione a UG ou a SIGLA de interesse:",
             options=options_combined,
-            default=[f"{ug} - {descricao_ugs_interesse[ugs_interesse.index(ug)]}" for ug in ug_padrao]
+            default=[f"{ug} - {dict_ug_sigla[ug]}" for ug in ug_padrao]
         )
 
-        # Separar as UGs selecionadas
-        selected_ugs = [int(option.split(" - ")[0]) for option in selected_ug_sigla]
+        # Verificar se "TODAS" foi selecionado
+        if "TODAS" in selected_ug_sigla:
+            selected_ugs = ugs_interesse  # Seleciona todas as UGs
+            selected_sigla = "TODOS ÓRGÃOS"
+        else:
+            # Separar as UGs selecionadas (caso não tenha selecionado "TODAS")
+            selected_ugs = [int(option.split(" - ")[0]) for option in selected_ug_sigla]
+            
+            # Se apenas uma UG for selecionada, obter sua sigla
+            selected_sigla = dict_ug_sigla.get(selected_ugs[0], "Sigla não encontrada") if len(selected_ugs) == 1 else "Múltiplas UGs"
 
         # ==========================
-        # SLIDER PARA ANO (SEGUINDO A MESMA LÓGICA)
+        # SLIDER PARA ANO
         # ==========================
         min_ano = int(df["ANO"].min())
         max_ano = int(df["ANO"].max())
@@ -65,7 +144,7 @@ def load_sidebar(df, dashboard_name):
         )
 
         # ==========================
-        # SLIDER PARA MÊS (CONVERTENDO 'NUM_MES' PARA INTEIRO)
+        # SLIDER PARA MÊS
         # ==========================
         df["NUM_MES"] = df["NUM_MES"].astype(int)
 
@@ -79,7 +158,7 @@ def load_sidebar(df, dashboard_name):
             value=(min_mes, max_mes)
         )
 
-        return selected_ugs, selected_ano, selected_mes
+        return selected_ugs, selected_ug_sigla, selected_ano, selected_mes, selected_sigla
 
 
 
