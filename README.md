@@ -1,62 +1,126 @@
-## Painel do Gestor
 
-# Visão Geral
-Este é um painel desenvolvido utilizando o Streamlit para gerenciar despesas, diárias e contratos. O painel permite a visualização de dados com vários filtros e exibe gráficos e tabelas interativas.
+# Painel do Gestor
 
-# Funcionalidades
-Despesas Detalhado: Painel detalhado para visualização de despesas.
-Diárias: Painel para visualizar diárias recebidas.
-Contratos: Painel para gerenciamento de contratos.
+## 📊 Visão Geral
 
-# Instalação
-Siga os passos abaixo para baixar e instalar o projeto na sua máquina Windows.
+O **Painel do Gestor** é uma aplicação interativa desenvolvida com [Streamlit](https://streamlit.io/) para análise e visualização de dados públicos do Governo do Estado de Alagoas. Este painel tem como principal objetivo fornecer uma visão clara, acessível e segmentada sobre despesas, diárias, contratos, servidores, orçamento e adiantamentos, auxiliando a alta gestão na tomada de decisões e na promoção da transparência pública.
 
-# Pré-requisitos
-Antes de iniciar, certifique-se de que você tenha instalado:
+O projeto foi inicialmente documentado neste repositório no GitHub e, posteriormente, passou a ser mantido e atualizado pelo time de desenvolvimento da **Controladoria Geral do Estado (CGE)** em um novo repositório no GitLab do **Instituto de Tecnologia em Informática e Informação do Estado de Alagoas (ITEC/AL)**.
 
-Python 3.8+
-Git
+---
 
-# Passo 1: Clonar o Repositório
-Primeiro, você precisa clonar o projeto do GitHub. Abra o Prompt de Comando ou o PowerShell e execute o comando abaixo:
+## 🧩 Módulos Desenvolvidos
 
-git clone https://github.com/mewerton/painelgestor
+### 📌 Despesas Detalhado
+Permite análise minuciosa das despesas das unidades gestoras (UGs), possibilitando o acompanhamento mês a mês, comparações com anos anteriores, além de filtros específicos por UG e por natureza da despesa.
 
-# Passo 2: Configurar o Ambiente Virtual
-No Windows, é altamente recomendado utilizar um ambiente virtual para gerenciar as dependências do projeto. Para criar e ativar um ambiente virtual, execute os comandos abaixo no Prompt de Comando ou PowerShell:
+![Despesas](src/assets/despesas_capab.png)
 
-# Criar o ambiente virtual
-python -m venv venv
+---
 
-# Ativar o ambiente virtual
-venv\Scripts\activate
+### 💼 Contratos
+Apresenta os contratos firmados pelo Governo do Estado, com visualização de aditivos, reajustes e valores executados. Ideal para o acompanhamento de gastos contratuais em tempo real.
 
-Você verá o nome do ambiente venv no início da linha do prompt, indicando que ele está ativo.
+![Contratos](src/assets/contratos_capab.png)
 
-# Passo 3: Instalar as Dependências
-Com o ambiente virtual ativado, instale as bibliotecas necessárias listadas no arquivo requirements.txt. Isso pode ser feito com o seguinte comando:
-pip install -r requirements.txt
+---
 
-# Passo 5: Criar arquivo config.toml
+### ✈️ Diárias
+Exibe o detalhamento das diárias pagas a servidores, com possibilidade de filtro por unidade, servidor e período. Uma importante ferramenta para o controle de gastos com deslocamentos.
 
-Algumas chaves são necessárias para executar o projeto: 
-FOLDER_ID = "XXXXXX"
-LOGIN_FOLDER_ID = "XXXXXX"
-CONTRATOS_FOLDER_ID = "XXXXXX"
-API_KEY = "XXXXXX"
-FOLHA_FOLDER_ID = "XXXXXX"
-CREDENTIALS_FILE = "XXXXXX"
+![Diárias](src/assets/diarias_capab.png)
 
-# Passo 6: Executar a Aplicação
-Agora que todas as dependências estão instaladas, você pode rodar o painel com o Streamlit. Use o seguinte comando no Prompt de Comando ou PowerShell:
-streamlit run app.py
+---
 
-Isso abrirá o painel diretamente no seu navegador padrão. Se tudo estiver configurado corretamente, você verá a interface do Painel do Gestor.
+### 🧑‍💻 Servidores
+Oferece dados sobre servidores públicos, suas remunerações, funções e unidades de lotação. Inclui visualizações sobre o perfil do servidor, vínculos ativos e situação funcional.
 
-# Solução de Problemas
-Se encontrar problemas durante a instalação ou execução do projeto, siga estas dicas:
+![Servidores](src/assets/servidores_capab.png)
 
-Verifique a Instalação do Python: Certifique-se de que o Python está instalado corretamente e incluído no PATH do sistema.
-Dependências: Verifique se todas as bibliotecas do requirements.txt foram instaladas corretamente.
-Ambiente Virtual: Verifique se o ambiente virtual está ativado antes de instalar as dependências e rodar o projeto.
-Versão do Streamlit: Certifique-se de que a versão do Streamlit é compatível com o código. Se necessário, atualize utilizando pip install --upgrade streamlit.
+---
+
+### ⛽ Combustível
+Monitora os gastos com combustíveis por parte das unidades gestoras, oferecendo uma visão consolidada e segmentada do consumo.
+
+---
+
+### 💰 Adiantamentos
+Permite a análise de valores adiantados às UGs, com controle por tipo, destino e período. Os dados são coletados diretamente de planilhas oficiais e transformados em datasets Parquet para melhor performance.
+
+---
+
+### 📊 Orçamento
+Apresenta um panorama orçamentário com receitas, despesas previstas e executadas, promovendo maior controle da execução financeira.
+
+---
+
+## ⚙️ Tecnologias Utilizadas
+
+- **Python 3.8+**
+- **Streamlit**
+- **Pandas**
+- **PyArrow**
+- **Google API Python Client**
+- **dotenv (.env) para variáveis sensíveis**
+- **Google Drive API para upload automatizado dos dados**
+- **Gráficos interativos e dashboards responsivos**
+
+---
+
+## 🚀 Estrutura do Projeto
+
+```
+painelgestor/
+│
+├── .streamlit/
+│   └── config.toml
+│
+├── database/
+│   └── UGS-COD-NOME-SIGLA.csv
+│
+├── src/assets/
+│   ├── contratos_capab.png
+│   ├── despesas_capab.png
+│   ├── diarias_capab.png
+│   ├── servidores_capab.png
+│   └── logos
+│
+├── app.py                # Arquivo principal da aplicação
+├── sidebar.py            # Menu lateral e navegação
+├── home.py               # Página inicial com visão geral
+├── despesas_ug.py        # Módulo de despesas
+├── contratos.py          # Módulo de contratos
+├── diarias.py            # Módulo de diárias
+├── servidores.py         # Módulo de servidores
+├── adiantamentos.py      # Módulo de adiantamentos
+├── combustivel.py        # Módulo de combustível
+├── orcamento.py          # Módulo de orçamento
+├── data_loader.py        # Centralização da carga dos dados
+├── chatbot.py            # Integração com IA (chatbot)
+├── analyzer.py           # Integração com IA
+├── auth_utils.py         # Utilitários de autenticação
+├── requirements.txt      # Dependências do projeto
+└── README.md             # Documentação inicial
+```
+
+---
+
+## 📌 Continuidade do Projeto
+
+Este repositório representa a **fase inicial** e estruturante do projeto *Painel do Gestor*, conduzida por **Mewerton de Melo Silva**, responsável pela concepção, arquitetura e desenvolvimento da versão base com uso intensivo de ETL automatizado, API com Google Drive, e estrutura modular em Streamlit.
+
+A evolução e manutenção contínua do projeto passaram a ser conduzidas pela **equipe técnica da CGE**, com versionamento ativo no **GitLab do ITEC/AL**, onde novas funcionalidades, correções e melhorias estão sendo desenvolvidas.
+
+---
+
+## 📞 Contato
+
+Para mais informações sobre o projeto original ou colaborações, entre em contato com o desenvolvedor:
+
+**Mewerton de Melo Silva**  
+Desenvolvedor de Software e Analista de Dados – CGE/AL  
+[LinkedIn](https://www.linkedin.com/in/mewerton/) | mewerton@gmail.com
+
+---
+
+**Painel do Gestor** – Um compromisso com a **transparência**, **inovação** e a **eficiência pública**.
