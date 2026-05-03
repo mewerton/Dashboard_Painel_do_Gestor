@@ -1,73 +1,72 @@
+# 🏛️ Government Manager Dashboard
 
-# Painel do Gestor
+## 📊 Overview
 
-## 📊 Visão Geral
+The **Government Manager Dashboard** is an interactive application built with [Streamlit](https://streamlit.io/) for analyzing and visualizing public data from the Government of the State of Alagoas. The main goal of this dashboard is to provide a clear, accessible, and segmented view of public expenditures, daily allowances, contracts, public servants, budget, and advances, supporting high-level decision-making and promoting public transparency.
 
-O **Painel do Gestor** é uma aplicação interativa desenvolvida com [Streamlit](https://streamlit.io/) para análise e visualização de dados públicos do Governo do Estado de Alagoas. Este painel tem como principal objetivo fornecer uma visão clara, acessível e segmentada sobre despesas, diárias, contratos, servidores, orçamento e adiantamentos, auxiliando a alta gestão na tomada de decisões e na promoção da transparência pública.
-
-O projeto foi inicialmente documentado neste repositório no GitHub e, posteriormente, passou a ser mantido e atualizado pelo time de desenvolvimento da **Controladoria Geral do Estado (CGE)** em um novo repositório no GitLab do **Instituto de Tecnologia em Informática e Informação do Estado de Alagoas (ITEC/AL)**.
-
----
-
-## 🧩 Módulos Desenvolvidos
-
-### 📌 Despesas Detalhado
-Permite análise minuciosa das despesas das unidades gestoras (UGs), possibilitando o acompanhamento mês a mês, comparações com anos anteriores, além de filtros específicos por UG e por natureza da despesa.
-
-![Despesas](src/assets/despesas_capab.png)
+The project was initially documented in this GitHub repository and later maintained and updated by the development team of the **State Comptroller’s Office (CGE)** in a new GitLab repository at the **Institute of Information Technology and Information of the State of Alagoas (ITEC/AL)**.
 
 ---
 
-### 💼 Contratos
-Apresenta os contratos firmados pelo Governo do Estado, com visualização de aditivos, reajustes e valores executados. Ideal para o acompanhamento de gastos contratuais em tempo real.
+## 🧩 Developed Modules
 
-![Contratos](src/assets/contratos_capab.png)
+### 📌 Detailed Expenses
+Provides in-depth analysis of expenditures by government units (UGs), allowing month-to-month tracking, year-over-year comparisons, and filtering by unit and expense category.
 
----
-
-### ✈️ Diárias
-Exibe o detalhamento das diárias pagas a servidores, com possibilidade de filtro por unidade, servidor e período. Uma importante ferramenta para o controle de gastos com deslocamentos.
-
-![Diárias](src/assets/diarias_capab.png)
+![Expenses](src/assets/despesas_capab.png)
 
 ---
 
-### 🧑‍💻 Servidores
-Oferece dados sobre servidores públicos, suas remunerações, funções e unidades de lotação. Inclui visualizações sobre o perfil do servidor, vínculos ativos e situação funcional.
+### 💼 Contracts
+Displays contracts signed by the State Government, including amendments, adjustments, and executed amounts. It is designed for real-time monitoring of contractual spending.
 
-![Servidores](src/assets/servidores_capab.png)
-
----
-
-### ⛽ Combustível
-Monitora os gastos com combustíveis por parte das unidades gestoras, oferecendo uma visão consolidada e segmentada do consumo.
+![Contracts](src/assets/contratos_capab.png)
 
 ---
 
-### 💰 Adiantamentos
-Permite a análise de valores adiantados às UGs, com controle por tipo, destino e período. Os dados são coletados diretamente de planilhas oficiais e transformados em datasets Parquet para melhor performance.
+### ✈️ Daily Allowances
+Shows detailed information about per diem payments to public servants, with filters by unit, employee, and time period. An important tool for monitoring travel-related expenses.
+
+![Daily Allowances](src/assets/diarias_capab.png)
 
 ---
 
-### 📊 Orçamento
-Apresenta um panorama orçamentário com receitas, despesas previstas e executadas, promovendo maior controle da execução financeira.
+### 🧑‍💻 Public Servants
+Provides data on public employees, including salaries, roles, and assigned units. It includes visualizations of employee profiles, active employment relationships, and functional status.
+
+![Public Servants](src/assets/servidores_capab.png)
 
 ---
 
-## ⚙️ Tecnologias Utilizadas
-
-- **Python 3.8+**
-- **Streamlit**
-- **Pandas**
-- **PyArrow**
-- **Google API Python Client**
-- **dotenv (.env) para variáveis sensíveis**
-- **Google Drive API para upload automatizado dos dados**
-- **Gráficos interativos e dashboards responsivos**
+### ⛽ Fuel
+Monitors fuel expenses across government units, providing a consolidated and segmented view of consumption.
 
 ---
 
-## 🚀 Estrutura do Projeto
+### 💰 Advances
+Enables analysis of advance payments made to government units, including type, purpose, and time period. Data is collected from official spreadsheets and transformed into Parquet datasets for performance optimization.
+
+---
+
+### 📊 Budget
+Presents an overview of the state budget, including revenues, planned expenditures, and actual execution, improving financial control and transparency.
+
+---
+
+## ⚙️ Technologies Used
+
+- Python 3.8+
+- Streamlit
+- Pandas
+- PyArrow
+- Google API Python Client
+- dotenv (.env for environment variables)
+- Google Drive API for automated data upload
+- Interactive charts and responsive dashboards
+
+---
+
+## 🚀 Project Structure
 
 ```
 painelgestor/
@@ -85,42 +84,42 @@ painelgestor/
 │   ├── servidores_capab.png
 │   └── logos
 │
-├── app.py                # Arquivo principal da aplicação
-├── sidebar.py            # Menu lateral e navegação
-├── home.py               # Página inicial com visão geral
-├── despesas_ug.py        # Módulo de despesas
-├── contratos.py          # Módulo de contratos
-├── diarias.py            # Módulo de diárias
-├── servidores.py         # Módulo de servidores
-├── adiantamentos.py      # Módulo de adiantamentos
-├── combustivel.py        # Módulo de combustível
-├── orcamento.py          # Módulo de orçamento
-├── data_loader.py        # Centralização da carga dos dados
-├── chatbot.py            # Integração com IA (chatbot)
-├── analyzer.py           # Integração com IA
-├── auth_utils.py         # Utilitários de autenticação
-├── requirements.txt      # Dependências do projeto
-└── README.md             # Documentação inicial
+├── app.py                # Main application file
+├── sidebar.py            # Navigation sidebar
+├── home.py               # Home page overview
+├── despesas_ug.py        # Expenses module
+├── contratos.py          # Contracts module
+├── diarias.py            # Daily allowances module
+├── servidores.py         # Public servants module
+├── adiantamentos.py      # Advances module
+├── combustivel.py        # Fuel module
+├── orcamento.py          # Budget module
+├── data_loader.py       # Centralized data loading
+├── chatbot.py           # AI chatbot integration
+├── analyzer.py          # AI analysis integration
+├── auth_utils.py        # Authentication utilities
+├── requirements.txt      # Project dependencies
+└── README.md             # Documentation
 ```
 
 ---
 
-## 📌 Continuidade do Projeto
+## 📌 Project Continuity
 
-Este repositório representa a **fase inicial** e estruturante do projeto *Painel do Gestor*, conduzida por **Mewerton de Melo Silva**, responsável pela concepção, arquitetura e desenvolvimento da versão base com uso intensivo de ETL automatizado, API com Google Drive, e estrutura modular em Streamlit.
+This repository represents the **initial and foundational phase** of the *Government Manager Dashboard*, led by **Mewerton de Melo Silva**, responsible for its conception, architecture, and core development using automated ETL processes, Google Drive API integration, and a modular Streamlit structure.
 
-A evolução e manutenção contínua do projeto passaram a ser conduzidas pela **equipe técnica da CGE**, com versionamento ativo no **GitLab do ITEC/AL**, onde novas funcionalidades, correções e melhorias estão sendo desenvolvidas.
+The ongoing evolution and maintenance of the project have been transferred to the **technical team of CGE**, with active versioning in the **ITEC/AL GitLab repository**, where new features, fixes, and improvements continue to be developed.
 
 ---
 
-## 📞 Contato
+## 📞 Contact
 
-Para mais informações sobre o projeto original ou colaborações, entre em contato com o desenvolvedor:
+For more information about the original project or collaborations, please contact:
 
 **Mewerton de Melo Silva**  
-Desenvolvedor de Software e Analista de Dados – CGE/AL  
+Software Developer and Data Analyst – CGE/AL  
 [LinkedIn](https://www.linkedin.com/in/mewerton/) | mewerton@gmail.com
 
 ---
 
-**Painel do Gestor** – Um compromisso com a **transparência**, **inovação** e a **eficiência pública**.
+**Government Manager Dashboard** – A commitment to **transparency**, **innovation**, and **public efficiency**.
